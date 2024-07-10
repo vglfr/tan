@@ -8,13 +8,12 @@
     let mkShell = system: {
       devShells.default =
         let pkgs = nixpkgs.legacyPackages.${system};
-         in pkgs.mkShell {
-           packages = with pkgs ; [
-             pkgs.haskellPackages.hoogle
-             pkgs.haskell-language-server
-             pkgs.haskell.compiler.ghc96
-           ];
-         };
+        in pkgs.mkShell {
+          packages = with pkgs ; [
+            pkgs.cargo
+            pkgs.rustc
+          ];
+        };
     };
     in flake-utils.lib.eachDefaultSystem mkShell;
 }
