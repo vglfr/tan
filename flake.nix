@@ -11,6 +11,9 @@
         in pkgs.mkShell {
           packages = with pkgs ; [
             pkgs.cargo
+            pkgs.clippy
+            pkgs.ncurses
+            pkgs.rust-analyzer
             pkgs.rustc
           ];
         };
