@@ -25,8 +25,8 @@ TUI consists of:
 - statistics, help, misc
 
 Tasks:
-- display static text in TUI
-- open file from CLI arg and display it
++ display static text in TUI
++ open file from CLI arg and display it
 - add cursor to TUI and show it in different color
 - navigate cursor with hjkl
 - wrap around newline with hjkl
