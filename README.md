@@ -27,9 +27,9 @@ TUI consists of:
 Tasks:
 + display static text in TUI
 + open file from CLI arg and display it
-- add cursor to TUI and show it in different color
-- navigate cursor with hjkl
-- wrap around newline with hjkl
++ add cursor to TUI (/ and show it in different color)
++ navigate cursor with hjkl
++ wrap around newline with hjkl
 - use mouse to set cursor position
 - scroll long text with jk
 - use mouse wheel for scrolling
