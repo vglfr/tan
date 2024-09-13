@@ -52,46 +52,48 @@ fn main() -> std::io::Result<()> {
         match read()? {
             Event::Key(event) => match event.code {
                 KeyCode::Char(c) => match c {
+                    // :q :w :x
                     'q' => break,
                     'w' => save_tan(&lines, &qname)?,
+                    // KeyCode::Char('x') => { break; }
+
+                    // hjkl movements
                     'h' => {
-                        execute!(stdout, cursor::MoveLeft(1))?;
+                        let (c, r) = cursor::position()?;
+                        if c > 0 {
+                            execute!(stdout, cursor::MoveLeft(1))?;
+                        } else if r > 0 {
+                            execute!(stdout, cursor::MoveTo(lines[r.saturating_sub(1) as usize].width.saturating_sub(1), r.saturating_sub(1)))?;
+                        }
                         if v { render_screen(&lines, &mut stdout, v, v_start)?; }
                     },
                     'j' => {
-                        execute!(stdout, cursor::MoveDown(1))?;
+                        let (c, r) = cursor::position()?;
+                        if r < lines.len().saturating_sub(1) as u16 {
+                            execute!(stdout, cursor::MoveDown(1))?;
+                            if c >= lines[r as usize + 1].width {
+                                execute!(stdout, cursor::MoveToColumn(lines[r as usize + 1].width.saturating_sub(1)))?;
+                            }
+                        }
                     },
                     'k' => {
-                        execute!(stdout, cursor::MoveUp(1))?;
+                        let (c, r) = cursor::position()?;
+                        if r < lines.len() as u16 {
+                            execute!(stdout, cursor::MoveUp(1))?;
+                            if c >= lines[r.saturating_sub(1) as usize].width {
+                                execute!(stdout, cursor::MoveToColumn(lines[r.saturating_sub(1) as usize].width.saturating_sub(1)))?;
+                            }
+                        }
                     },
                     'l' => {
-                        execute!(stdout, cursor::MoveRight(1))?;
+                        let (c, r) = cursor::position()?;
+                        if c < lines[r as usize].width.saturating_sub(1) {
+                            execute!(stdout, cursor::MoveRight(1))?;
+                        } else if r < lines.len().saturating_sub(1) as u16 {
+                            execute!(stdout, cursor::MoveTo(0, r + 1))?;
+                        }
                         if v { render_screen(&lines, &mut stdout, v, v_start)?; }
                     },
-//                     // :q :w :x
-//                     KeyCode::Char('q') => { break; }
-//                     // KeyCode::Char('w') => { break; }
-//                     // KeyCode::Char('x') => { break; }
-
-//                     // hjkl movements
-//                     KeyCode::Char('h') => {
-//                         if curpos.x > 0 {
-//                             curpos.x -= 1;
-//                         } else if curpos.y > 0 {
-//                             curpos.x = area.width - 1;
-//                             curpos.y -= 1;
-//                         }
-//                     }
-//                     KeyCode::Char('j') => { curpos.y += if curpos.y < area.height { 1 } else { 0 }; }
-//                     KeyCode::Char('k') => { curpos.y -= if curpos.y > 0 { 1 } else { 0 }; }
-//                     KeyCode::Char('l') => {
-//                         if curpos.x < area.width - 1 {
-//                             curpos.x += 1;
-//                         } else if curpos.y < area.height {
-//                             curpos.x = 0;
-//                             curpos.y += 1;
-//                         }
-//                     }
 
 //                     // wb{} movement (later WB + g-setb)
 //                     // KeyCode::Char('w') => { break; }
@@ -146,9 +148,12 @@ fn render_screen(lines: &Vec<Line>, stdout: &mut Stdout, v: bool, v_start: u16) 
             let mut a = [v_start as usize, v_end as usize];
             a.sort();
 
-            tmp.push(Tag { start: 0, end: a[0], label: Label { name: "0".to_owned(), color: Color::Reset }});
-            tmp.push(Tag { start: a[0], end: a[1] + 1, label: Label { name: "0".to_owned(), color: Color::Yellow }});
-            tmp.push(Tag { start: a[1] + 1, end: line.width as usize, label: Label { name: "0".to_owned(), color: Color::Reset }});
+            let s = a[0];
+            let e = std::cmp::min(a[1] + 1, line.width as usize);
+
+            tmp.push(Tag { start: 0, end: s, label: Label { name: "0".to_owned(), color: Color::Reset }});
+            tmp.push(Tag { start: s, end: e, label: Label { name: "0".to_owned(), color: Color::Yellow }});
+            tmp.push(Tag { start: e, end: line.width as usize, label: Label { name: "0".to_owned(), color: Color::Reset }});
 
             // let s = serde_json::to_string(&tmp)?;
             // let mut f = File::create("/tmp/dbg.json")?;
