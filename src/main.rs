@@ -26,6 +26,15 @@ struct App {
     visual_end: u16,
 }
 
+impl App {
+    fn get_visual_bounds(&self) -> (u16, u16) {
+        let mut a = [self.visual_start, self.visual_end];
+        a.sort();
+
+        (a[0], a[1] + 1)
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 struct Chunk {
     start: u16,
@@ -123,16 +132,22 @@ fn main() -> std::io::Result<()> {
                             app.visual_end = app.cursor_column;
                         } else {
                             app.visual = true;
-                            app.visual_start = app.cursor_column;
                             app.visual_row = app.cursor_row;
+                            app.visual_start = app.cursor_column;
+                            app.visual_end = app.cursor_column;
                         }
                     }
 
                     't' => {
                         tag(&mut app);
                         app.visual = false;
+                        app.visual_end = app.cursor_column;
+                        render_screen(&app, &mut stdout)?;
                     },
-                    'u' => { untag(&mut app); },
+                    'u' => {
+                        untag(&mut app);
+                        render_screen(&app, &mut stdout)?;
+                    },
 
                     _ => (),
                     },
@@ -142,7 +157,7 @@ fn main() -> std::io::Result<()> {
         }
 
         execute!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
-        if app.visual {
+        if app.visual && app.cursor_row == app.visual_row {
             app.visual_end = app.cursor_column;
             render_screen(&app, &mut stdout)?;
         }
@@ -155,12 +170,7 @@ fn main() -> std::io::Result<()> {
 }
 
 fn tag(app: &mut App) {
-    let mut a = [app.visual_start, app.visual_end];
-    a.sort();
-
-    let s = a[0];
-    let e = std::cmp::min(a[1] + 1, app.lines[app.visual_row as usize].width);
-
+    let (s,e) = app.get_visual_bounds();
     app.lines[app.visual_row as usize].tags.push(Tag { start: s, end: e, label: Label { name: "tag1".to_owned(), color: Color::Red }});
 }
 
@@ -190,29 +200,48 @@ fn render_screen(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
-    let mut tags = Vec::new();
+    let mut points = vec![0, line.width];
 
-    if app.visual && line.row == app.visual_row {
-        let mut a = [app.visual_start, app.visual_end];
-        a.sort();
+    let starts = line.tags.iter().map(|x| x.start);
+    let ends = line.tags.iter().map(|x| x.end);
 
-        let s = a[0];
-        let e = std::cmp::min(a[1] + 1, line.width);
-
-        tags.push(Chunk { start: 0, end: s, color: Color::Reset });
-        tags.push(Chunk { start: s, end: e, color: Color::Yellow });
-        tags.push(Chunk { start: e, end: line.width, color: Color::Reset });
-
-        // let s = serde_json::to_string(&tags).unwrap();
-        // let mut f = File::create("/tmp/dbg.json").unwrap();
-        // f.write_all(s.as_bytes()).unwrap();
-        // f.write_all(serde_json::to_string(&line).unwrap().as_bytes()).unwrap();
-
-    } else {
-        tags.push(Chunk { start: 0, end: line.width, color: Color::Reset });
+    if app.visual && app.visual_row == line.row {
+        let (s,e) = app.get_visual_bounds();
+        points.push(s);
+        points.push(e);
     }
 
-    tags
+    points.extend(starts);
+    points.extend(ends);
+
+    points.sort();
+    points.dedup();
+
+    let tmp = points[1..].iter().zip(points.clone()).map(|(e,s)| {
+        let color =
+            if app.visual && app.visual_row == line.row && s == std::cmp::min(app.visual_start, app.visual_end) {
+                Color::Yellow
+            } else if line.tags.iter().any(|x| s == x.start) {
+                Color::Red
+            } else {
+                Color::Reset
+            };
+        Chunk { start: s, end: *e, color }
+    }).collect();
+
+    if line.row == 1 {
+        let mut f = File::create("/tmp/dbg.json").unwrap();
+
+        let s = serde_json::to_string(&points).unwrap();
+        f.write_all(s.as_bytes()).unwrap();
+
+        let s2 = serde_json::to_string(&tmp).unwrap();
+        f.write_all(s2.as_bytes()).unwrap();
+
+        f.write_all(serde_json::to_string(&line).unwrap().as_bytes()).unwrap();
+    }
+
+    tmp
 }
 
 fn load_file(fname: &str, qname: &str) -> std::io::Result<App> {
