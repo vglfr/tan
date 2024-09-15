@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 
-use crate::helper::{App, Line};
+use crate::helper::{App, Line, Mode};
 
 pub fn load_file(fname: &str, qname: &str) -> std::io::Result<App> {
     if std::path::Path::new(&qname).exists() {
@@ -43,8 +43,7 @@ fn load_src(fname: &str, qname: &str) -> std::io::Result<App> {
         cursor_column: 0,
         cursor_row: 0,
         height: lines.len() as u16,
-        is_modal: false,
-        is_visual: false,
+        mode: Mode::View,
         labels: Vec::new(),
         lines,
         visual_row: 0,
@@ -58,8 +57,11 @@ fn load_src(fname: &str, qname: &str) -> std::io::Result<App> {
 }
 
 pub fn save_tan(app: &App) -> std::io::Result<()> {
-    let s = serde_json::to_string(app)?;
-    let mut f = File::create(&app.qname)?;
+    let mut a = (*app).clone();
+    a.mode = Mode::View;
+
+    let s = serde_json::to_string(&a)?;
+    let mut f = File::create(&a.qname)?;
 
     f.write_all(s.as_bytes())?;
     Ok(())

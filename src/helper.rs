@@ -1,15 +1,14 @@
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct App {
     pub fname: String,
     pub qname: String,
     pub cursor_column: u16,
     pub cursor_row: u16,
     pub height: u16,
-    pub is_modal: bool,
-    pub is_visual: bool,
+    pub mode: Mode,
     pub labels: Vec<Label>,
     pub lines: Vec<Line>,
     pub visual_row: u16,
@@ -33,6 +32,30 @@ impl App {
         let tags = self.lines[self.cursor_row as usize].tags.clone();
         self.lines[self.cursor_row as usize].tags = tags.into_iter().filter(|x| !(x.start <= self.cursor_column && self.cursor_column <= x.end)).collect::<_>();
     }
+
+    pub fn is_modal(&self) -> bool {
+        self.mode == Mode::Modal
+    }
+
+    pub fn is_view(&self) -> bool {
+        self.mode == Mode::View
+    }
+
+    pub fn is_visual(&self) -> bool {
+        self.mode == Mode::Visual
+    }
+
+    pub fn set_modal_mode(&mut self) {
+        self.mode = Mode::Modal;
+    }
+
+    pub fn set_view_mode(&mut self) {
+        self.mode = Mode::View;
+    }
+
+    pub fn set_visual_mode(&mut self) {
+        self.mode = Mode::Visual;
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -48,7 +71,7 @@ pub struct Label {
     pub color: Color,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Line {
     pub row: u16,
     pub text: String,
@@ -56,11 +79,12 @@ pub struct Line {
     pub tags: Vec<Tag>,
 }
 
-enum Mode {
-    View,
-    ViewVisual,
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub enum Mode {
+    Input,
     Modal,
-    ModalInput,
+    View,
+    Visual,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -69,3 +93,5 @@ pub struct Tag {
     pub end: u16,
     pub label: Label,
 }
+
+// pub fn matc

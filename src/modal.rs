@@ -7,6 +7,13 @@ use crossterm::{
     style::{self, Color},
 };
 
+use crate::{helper::App, view};
+
+pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.set_view_mode();
+    view::render_view(&app, stdout)
+}
+
 pub fn render_modal(stdout: &mut Stdout) -> std::io::Result<()> {
     execute!(stdout, cursor::SavePosition)?;
 

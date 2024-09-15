@@ -1,7 +1,9 @@
+pub mod common;
 pub mod helper;
 pub mod io;
 pub mod modal;
 pub mod view;
+pub mod visual;
 
 use crossterm::{
     cursor,
@@ -9,6 +11,8 @@ use crossterm::{
     execute,
     terminal,
 };
+
+use crate::helper::Mode;
 
 fn main() -> std::io::Result<()> {
     let fname = std::env::args().nth(1).unwrap_or("flake.nix".to_string());
@@ -24,105 +28,68 @@ fn main() -> std::io::Result<()> {
     view::render_view(&app, &mut stdout)?;
 
     loop {
-        let event = read()?;
-        match event {
-            Event::Key(event) => match event.code {
-                KeyCode::Char(c) => match c {
-                    'q' => break,
-                    'w' => io::save_tan(&app)?,
-                    // KeyCode::Char('x') => { break; }
+        let keycode = extract_keycode()?;
 
-                    'h' => {
-                        if app.cursor_column > 0 {
-                            app.cursor_column = app.cursor_column.saturating_sub(1);
-                        } else if app.cursor_row > 0 {
-                            app.cursor_column = app.lines[app.cursor_row.saturating_sub(1) as usize].width.saturating_sub(1);
-                            app.cursor_row = app.cursor_row.saturating_sub(1);
-                        }
-                    },
-                    'j' => {
-                        if app.cursor_row < app.height.saturating_sub(1) {
-                            app.cursor_row += 1;
-
-                            if app.cursor_column >= app.lines[app.cursor_row as usize].width {
-                                app.cursor_column = app.lines[app.cursor_row as usize].width.saturating_sub(1);
-                            }
-                        }
-                    },
-                    'k' => {
-                        if app.cursor_row < app.height {
-                            app.cursor_row = app.cursor_row.saturating_sub(1);
-
-                            if app.cursor_column >= app.lines[app.cursor_row as usize].width {
-                                app.cursor_column = app.lines[app.cursor_row as usize].width.saturating_sub(1);
-                            }
-                        }
-                    },
-                    'l' => {
-                        if app.cursor_column < app.lines[app.cursor_row as usize].width.saturating_sub(1) {
-                            app.cursor_column += 1;
-                        } else if app.cursor_row < app.height.saturating_sub(1) {
-                            app.cursor_column = 0;
-                            app.cursor_row += 1;
-                        }
-                    },
-
-                    // wb{} movement (later WB + g-seSE)
-                    // KeyCode::Char('w') => { break; }
-                    // KeyCode::Char('b') => { break; }
-                    // KeyCode::Char('{') => { break; }
-                    // KeyCode::Char('}') => { break; }
-
-                    // toggle selection
-                    'v' => {
-                        if app.is_visual {
-                            app.is_visual = false;
-                            app.visual_end = app.cursor_column;
-                        } else {
-                            app.is_visual = true;
-                            app.visual_row = app.cursor_row;
-                            app.visual_start = app.cursor_column;
-                            app.visual_end = app.cursor_column;
-                        }
-                    }
-
-                    't' => {
-                        app.tag();
-                        app.is_visual = false;
-                        app.visual_end = app.cursor_column;
-                        view::render_view(&app, &mut stdout)?;
-                    },
-                    'u' => {
-                        app.untag();
-                        view::render_view(&app, &mut stdout)?;
-                    },
-
-                    'm' => {
-                        if app.is_modal {
-                            app.is_modal = false;
-                            view::render_view(&app, &mut stdout)?;
-                        } else {
-                            app.is_modal = true;
-                            modal::render_modal(&mut stdout)?;
-                        }
-                    },
-
-                    _ => (),
-                    },
-                _ => (),
-            },
+        match keycode {
+            'q' => break,
+            'w' => io::save_tan(&app)?,
             _ => (),
         }
 
-        execute!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
-        if app.is_visual && app.cursor_row == app.visual_row {
-            app.visual_end = app.cursor_column;
-            view::render_view(&app, &mut stdout)?;
+        match app.mode {
+            Mode::Input =>
+                (),
+            Mode::Modal =>
+                match keycode {
+                    'm' => modal::handle_m(&mut app, &mut stdout)?,
+                    _ => (),
+                },
+            Mode::View =>
+                match keycode {
+                    'h' => common::handle_h(&mut app, &mut stdout)?,
+                    'j' => common::handle_j(&mut app, &mut stdout)?,
+                    'k' => common::handle_k(&mut app, &mut stdout)?,
+                    'l' => common::handle_l(&mut app, &mut stdout)?,
+
+                    // wb{} movement (later WB + g-seSE)
+                    // 'w' => { break; }
+                    // 'b' => { break; }
+                    // '{' => { break; }
+                    // '}' => { break; }
+
+                    'm' => common::handle_m(&mut app, &mut stdout)?,
+                    'v' => view::handle_v(&mut app)?,
+
+                    't' => common::handle_t(&mut app, &mut stdout)?,
+                    'u' => view::handle_u(&mut app, &mut stdout)?,
+                    _ => (),
+                },
+            Mode::Visual =>
+                match keycode {
+                    'h' => common::handle_h(&mut app, &mut stdout)?,
+                    'l' => common::handle_l(&mut app, &mut stdout)?,
+
+                    'm' => common::handle_m(&mut app, &mut stdout)?,
+                    't' => common::handle_t(&mut app, &mut stdout)?,
+                    'v' => visual::handle_v(&mut app)?,
+                    _ => (),
+                },
         }
+
     }
 
     execute!(stdout, terminal::LeaveAlternateScreen)?;
     terminal::disable_raw_mode()?;
 
     Ok(())
+}
+
+fn extract_keycode() -> std::io::Result<char> {
+    match read()? {
+        Event::Key(event) => match event.code {
+            KeyCode::Char(c) => Ok(c),
+            _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap!")),
+        }
+        _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap!")),
+    }
 }
