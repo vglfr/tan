@@ -58,13 +58,6 @@ impl App {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Chunk {
-    pub start: u16,
-    pub end: u16,
-    pub color: Color,
-}
-
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Label {
     pub name: String,
@@ -93,5 +86,3 @@ pub struct Tag {
     pub end: u16,
     pub label: Label,
 }
-
-// pub fn matc
