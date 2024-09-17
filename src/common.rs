@@ -57,7 +57,7 @@ fn render_move(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_modal_mode();
-    modal::render_modal(stdout)?;
+    modal::render_modal(app, stdout)?;
     Ok(())
 }
 
@@ -65,6 +65,6 @@ pub fn handle_t(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.tag();
     app.set_view_mode();
     app.visual_end = app.cursor_column;
-    view::render_view(&app, stdout)?;
+    view::render_view(app, stdout)?;
     Ok(())
 }

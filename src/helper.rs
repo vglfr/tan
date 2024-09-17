@@ -74,8 +74,9 @@ pub struct Line {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Mode {
-    Input,
+    Color,
     Modal,
+    Name,
     View,
     Visual,
 }

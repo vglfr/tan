@@ -1,7 +1,9 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 
-use crate::helper::{App, Line, Mode};
+use crossterm::style::Color;
+
+use crate::helper::{App, Label, Line, Mode};
 
 pub fn load_file(fname: &str, qname: &str) -> std::io::Result<App> {
     if std::path::Path::new(&qname).exists() {
@@ -44,7 +46,7 @@ fn load_src(fname: &str, qname: &str) -> std::io::Result<App> {
         cursor_row: 0,
         height: lines.len() as u16,
         mode: Mode::View,
-        labels: Vec::new(),
+        labels: vec![Label { name: "one".to_owned(), color: Color::Blue }, Label { name: "two".to_owned(), color: Color::Green }],
         lines,
         visual_row: 0,
         visual_start: 0,

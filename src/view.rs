@@ -3,7 +3,7 @@ use std::io::{Stdout, Write};
 use crossterm::{
     cursor,
     queue,
-    style::{self, Color}, terminal::size,
+    style::{self, Color}, terminal::{self, size, ClearType},
 };
 use serde::{Deserialize, Serialize};
 
@@ -34,6 +34,7 @@ pub fn handle_v(app: &mut App) -> std::io::Result<()> {
 
 pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     queue!(stdout, cursor::SavePosition)?;
+    queue!(stdout, terminal::Clear(ClearType::All))?;
 
     for line in &app.lines {
         for chunk in chunk_line(line, app) {
@@ -89,8 +90,8 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
         Chunk { start: s, end: *e, color }
     }).collect();
 
-    let chunk = Chunk { start: line.width, end: size().unwrap().1, color: Color::Reset }; 
-    chunks.push(chunk);
+    // let chunk = Chunk { start: line.width, end: size().unwrap().1, color: Color::Reset }; 
+    // chunks.push(chunk);
 
     // if line.row == 1 {
     //     let mut f = File::create("/tmp/dbg.json").unwrap();

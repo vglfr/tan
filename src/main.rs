@@ -37,12 +37,33 @@ fn main() -> std::io::Result<()> {
         }
 
         match app.mode {
-            Mode::Input =>
-                (),
+            Mode::Color =>
+                match keycode {
+                    'j' => (),
+                    'k' => (),
+                    // 'c-j' => (),
+                    _ => (),
+                },
             Mode::Modal =>
                 match keycode {
                     'm' => modal::handle_m(&mut app, &mut stdout)?,
+
+                    'a' => (),
+                    'd' => (),
+
+                    'j' => (),
+                    'k' => (),
+
+                    'n' => (),
+                    'c' => (),
                     _ => (),
+                },
+            Mode::Name =>
+                match keycode {
+                    // 'c-j' => (),
+                    // 'c-h' => (),
+                    // 'c-u' => (),
+                    _ => (), // input
                 },
             Mode::View =>
                 match keycode {
