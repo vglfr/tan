@@ -3,13 +3,11 @@ use std::io::{Stdout, Write};
 use crossterm::{
     cursor,
     queue,
-    style::{self, Color}, terminal::{self, size, ClearType},
+    style::{self, Color}, terminal::{self, ClearType},
 };
 use serde::{Deserialize, Serialize};
 
 use crate::helper::{App, Line};
-
-const BLANK_TEXT: &str = "                                                                                            ";
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Chunk {
@@ -38,12 +36,7 @@ pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
 
     for line in &app.lines {
         for chunk in chunk_line(line, app) {
-            let text =
-                if chunk.start == line.width {
-                    &BLANK_TEXT[..(chunk.end - chunk.start).into()]
-                } else {
-                    &line.text[chunk.start.into()..chunk.end.into()]
-                };
+            let text = &line.text[chunk.start.into()..chunk.end.into()];
 
             queue!(
                 stdout,
@@ -78,7 +71,7 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     points.sort();
     points.dedup();
 
-    let mut chunks: Vec<Chunk> = points[1..].iter().zip(points.clone()).map(|(e,s)| {
+    let chunks: Vec<Chunk> = points[1..].iter().zip(points.clone()).map(|(e,s)| {
         let color =
             if app.is_visual() && app.visual_row == line.row && s == std::cmp::min(app.visual_start, app.visual_end) {
                 Color::Yellow
@@ -89,9 +82,6 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
             };
         Chunk { start: s, end: *e, color }
     }).collect();
-
-    // let chunk = Chunk { start: line.width, end: size().unwrap().1, color: Color::Reset }; 
-    // chunks.push(chunk);
 
     // if line.row == 1 {
     //     let mut f = File::create("/tmp/dbg.json").unwrap();
