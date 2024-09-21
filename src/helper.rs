@@ -8,6 +8,7 @@ pub struct App {
     pub cursor_column: u16,
     pub cursor_row: u16,
     pub height: u16,
+    pub modal_row: i8,
     pub mode: Mode,
     pub labels: Vec<Label>,
     pub lines: Vec<Line>,

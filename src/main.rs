@@ -1,3 +1,4 @@
+pub mod color;
 pub mod common;
 pub mod helper;
 pub mod io;
@@ -39,9 +40,10 @@ fn main() -> std::io::Result<()> {
         match app.mode {
             Mode::Color =>
                 match keycode {
-                    'j' => (),
+                    'j' => color::handle_j(&mut app, &mut stdout)?,
                     'k' => (),
                     // 'c-j' => (),
+                    // 'c-[' => (),
                     _ => (),
                 },
             Mode::Modal =>
@@ -51,11 +53,11 @@ fn main() -> std::io::Result<()> {
                     'a' => (),
                     'd' => (),
 
-                    'j' => (),
-                    'k' => (),
+                    'j' => modal::handle_j(&mut app, &mut stdout)?,
+                    'k' => modal::handle_k(&mut app, &mut stdout)?,
 
                     'n' => (),
-                    'c' => (),
+                    'c' => modal::handle_c(&mut app, &mut stdout)?,
                     _ => (),
                 },
             Mode::Name =>
