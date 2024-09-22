@@ -5,16 +5,21 @@ use serde::{Deserialize, Serialize};
 pub struct App {
     pub fname: String,
     pub qname: String,
+    pub color_column: i8,
     pub cursor_column: u16,
     pub cursor_row: u16,
     pub height: u16,
     pub modal_row: i8,
+    pub modal_start_column: u16,
+    pub modal_start_row: u16,
     pub mode: Mode,
     pub labels: Vec<Label>,
     pub lines: Vec<Line>,
     pub visual_row: u16,
     pub visual_start: u16,
     pub visual_end: u16,
+    pub window_height: u16,
+    pub window_width: u16,
 }
 
 impl App {

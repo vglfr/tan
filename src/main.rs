@@ -29,7 +29,7 @@ fn main() -> std::io::Result<()> {
     view::render_view(&app, &mut stdout)?;
 
     loop {
-        let keycode = extract_keycode()?;
+        let (keycode,is_ctrl) = extract_keycode()?;
 
         match keycode {
             'q' => break,
@@ -40,9 +40,10 @@ fn main() -> std::io::Result<()> {
         match app.mode {
             Mode::Color =>
                 match keycode {
-                    'j' => color::handle_j(&mut app, &mut stdout)?,
-                    'k' => (),
-                    // 'c-j' => (),
+                    'h' => color::handle_h(&mut app, &mut stdout)?,
+                    'l' => color::handle_l(&mut app, &mut stdout)?,
+
+                    'j' if is_ctrl => color::handle_c_j(&mut app, &mut stdout)?,
                     // 'c-[' => (),
                     _ => (),
                 },
@@ -107,12 +108,13 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-fn extract_keycode() -> std::io::Result<char> {
+fn extract_keycode() -> std::io::Result<(char,bool)> {
     match read()? {
         Event::Key(event) => match event.code {
-            KeyCode::Char(c) => Ok(c),
-            _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap!")),
+            KeyCode::Char(c) => Ok((c,false)),
+            KeyCode::Enter => Ok(('j',true)),
+            _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap1!")),
         }
-        _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap!")),
+        _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap2!")),
     }
 }

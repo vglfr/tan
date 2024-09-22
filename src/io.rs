@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 
 use crossterm::style::Color;
+use crossterm::terminal;
 
 use crate::helper::{App, Label, Line, Mode};
 
@@ -39,13 +40,18 @@ fn load_src(fname: &str, qname: &str) -> std::io::Result<App> {
         s.truncate(0);
     }
 
+    let window = terminal::window_size().unwrap();
+
     let app = App {
         fname: fname.to_owned(),
         qname: qname.to_owned(),
+        color_column: 0,
         cursor_column: 0,
         cursor_row: 0,
         height: lines.len() as u16,
         modal_row: 0,
+        modal_start_column: 0,
+        modal_start_row: 0,
         mode: Mode::View,
         labels: vec![
             Label { name: "label1".to_owned(), color: Color::Red },
@@ -57,6 +63,8 @@ fn load_src(fname: &str, qname: &str) -> std::io::Result<App> {
         visual_row: 0,
         visual_start: 0,
         visual_end: 0,
+        window_height: window.rows,
+        window_width: window.columns,
     };
 
     Ok(app)
