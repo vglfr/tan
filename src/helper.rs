@@ -1,6 +1,16 @@
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
 
+pub const COLORS: [Color; 7] = [
+    Color::Black,
+    Color::Red,
+    Color::Green,
+    Color::Yellow,
+    Color::Blue,
+    Color::Magenta,
+    Color::Cyan,
+];
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct App {
     pub fname: String,

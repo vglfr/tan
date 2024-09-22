@@ -7,7 +7,7 @@ use crossterm::{
     style::{self, Color},
 };
 
-use crate::{color, helper::{App, Label, Mode}, view};
+use crate::{color, helper::{self, App, Label, Mode}, view};
 
 struct Chunk {
     text: String,
@@ -31,6 +31,7 @@ pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 pub fn handle_c(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.mode = Mode::Color;
+    app.color_column = helper::COLORS.iter().position(|x| x == &app.labels[app.modal_row as usize].color).unwrap() as i8;
     color::render_color(app, stdout)
 }
 
