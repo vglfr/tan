@@ -36,5 +36,5 @@ Tasks:
 - select with wb
 - use mouse for selection
 + tag / untag selection with hotkey (t / u ?)
-- display tag information in the bottom
++ display tag information in the bottom
 ~ save tagged file to disk

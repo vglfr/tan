@@ -61,8 +61,16 @@ impl App {
         self.mode == Mode::Visual
     }
 
+    pub fn set_color_mode(&mut self) {
+        self.mode = Mode::Color;
+    }
+
     pub fn set_modal_mode(&mut self) {
         self.mode = Mode::Modal;
+    }
+
+    pub fn set_name_mode(&mut self) {
+        self.mode = Mode::Name;
     }
 
     pub fn set_view_mode(&mut self) {

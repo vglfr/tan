@@ -3,12 +3,13 @@ pub mod common;
 pub mod helper;
 pub mod io;
 pub mod modal;
+pub mod name;
 pub mod view;
 pub mod visual;
 
 use crossterm::{
     cursor,
-    event::{read, Event, KeyCode},
+    event::{read, Event, KeyCode, KeyModifiers},
     execute,
     terminal,
 };
@@ -29,7 +30,7 @@ fn main() -> std::io::Result<()> {
     view::render_view(&app, &mut stdout)?;
 
     loop {
-        let (keycode,is_ctrl) = extract_keycode()?;
+        let keycode = extract_keycode()?;
 
         match keycode {
             'q' => break,
@@ -43,30 +44,34 @@ fn main() -> std::io::Result<()> {
                     'h' => color::handle_h(&mut app, &mut stdout)?,
                     'l' => color::handle_l(&mut app, &mut stdout)?,
 
-                    'j' if is_ctrl => color::handle_c_j(&mut app, &mut stdout)?,
-                    // 'c-[' => (),
+                    '\x0a' => color::handle_0a(&mut app, &mut stdout)?,
+                    '\x1b' => common::handle_1b(&mut app, &mut stdout)?,
+
                     _ => (),
                 },
             Mode::Modal =>
                 match keycode {
                     'm' => modal::handle_m(&mut app, &mut stdout)?,
 
-                    'a' => (),
-                    'd' => (),
+                    'a' => modal::handle_a(&mut app, &mut stdout)?,
+                    'd' => modal::handle_d(&mut app, &mut stdout)?,
 
                     'j' => modal::handle_j(&mut app, &mut stdout)?,
                     'k' => modal::handle_k(&mut app, &mut stdout)?,
 
-                    'n' => (),
+                    'n' => modal::handle_n(&mut app, &mut stdout)?,
                     'c' => modal::handle_c(&mut app, &mut stdout)?,
                     _ => (),
                 },
             Mode::Name =>
                 match keycode {
-                    // 'c-j' => (),
-                    // 'c-h' => (),
+                    c@'!'..='~' => name::handle_key(c, &mut app, &mut stdout)?,
+
+                    '\x1b' => common::handle_1b(&mut app, &mut stdout)?,
+                    '\x08' => name::handle_08(&mut app, &mut stdout)?,
+
                     // 'c-u' => (),
-                    _ => (), // input
+                    _ => (),
                 },
             Mode::View =>
                 match keycode {
@@ -108,11 +113,16 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-fn extract_keycode() -> std::io::Result<(char,bool)> {
+fn extract_keycode() -> std::io::Result<char> {
     match read()? {
         Event::Key(event) => match event.code {
-            KeyCode::Char(c) => Ok((c,false)),
-            KeyCode::Enter => Ok(('j',true)),
+            KeyCode::Char(c) => match c {
+                'h' if event.modifiers == KeyModifiers::CONTROL => Ok('\x08'),
+                c => Ok(c),
+            },
+            KeyCode::Backspace => Ok('\x08'),
+            KeyCode::Enter => Ok('\x0a'),
+            KeyCode::Esc => Ok('\x1b'),
             _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap1!")),
         }
         _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap2!")),

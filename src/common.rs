@@ -46,25 +46,34 @@ pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     render_move(app, stdout)
 }
 
-fn render_move(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    execute!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
-    if app.is_visual() && app.cursor_row == app.visual_row {
-        app.visual_end = app.cursor_column;
-        view::render_view(app, stdout)?;
-    }
-    Ok(())
-}
-
 pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_modal_mode();
-    modal::render_modal(app, stdout)?;
-    Ok(())
+    execute!(stdout, cursor::Hide)?;
+    modal::render_modal(app, stdout)
 }
 
 pub fn handle_t(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.tag();
     app.set_view_mode();
+
     app.visual_end = app.cursor_column;
+    view::render_view(app, stdout)
+}
+
+pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.set_modal_mode();
+    execute!(stdout, cursor::Hide)?;
+
     view::render_view(app, stdout)?;
-    Ok(())
+    modal::render_modal(app, stdout)
+}
+
+fn render_move(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    execute!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
+    if app.is_visual() && app.cursor_row == app.visual_row {
+        app.visual_end = app.cursor_column;
+        view::render_view(app, stdout)
+    } else {
+        Ok(())
+    }
 }
