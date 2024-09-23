@@ -48,6 +48,16 @@ pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     execute!(stdout, cursor::MoveToRow(app.cursor_row))
 }
 
+pub fn handle_s(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_column = 0;
+    execute!(stdout, cursor::MoveToColumn(app.cursor_column))
+}
+
+pub fn handle_e(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_column = std::cmp::min(app.lines[(app.cursor_row + app.offset_row) as usize].width, app.window_width - 1);
+    execute!(stdout, cursor::MoveToColumn(app.cursor_column))
+}
+
 pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.untag();
     render_view(app, stdout)
