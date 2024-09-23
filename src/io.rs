@@ -86,5 +86,5 @@ pub fn save_tan(app: &App) -> std::io::Result<()> {
 
 pub fn dump_debug(app: &App) -> std::io::Result<()> {
     let mut f = File::create("/tmp/dbg.json").unwrap();
-    f.write_all(serde_json::to_string(&app).unwrap().as_bytes())
+    f.write_all(serde_json::to_string(app).unwrap().as_bytes())
 }

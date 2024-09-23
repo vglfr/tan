@@ -21,14 +21,36 @@ pub fn handle_H(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 #[allow(non_snake_case)]
+pub fn handle_M(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_row = std::cmp::min(app.window_height / 2, app.nlines / 2);
+    execute!(stdout, cursor::MoveToRow(app.cursor_row))
+}
+
+#[allow(non_snake_case)]
 pub fn handle_L(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_row = app.window_height - 1;
-    execute!(stdout, cursor::MoveToRow(app.window_height))
+    app.cursor_row = std::cmp::min(app.window_height - 1, app.nlines - 1);
+    execute!(stdout, cursor::MoveToRow(app.cursor_row))
+}
+
+pub fn handle_pg_down(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.offset_row = std::cmp::min(app.offset_row + app.cursor_row, app.nlines.saturating_sub(app.window_height));
+    app.cursor_row = std::cmp::min(app.window_height - 1, app.nlines - 1);
+
+    render_view(app, stdout)?;
+    execute!(stdout, cursor::MoveToRow(app.cursor_row))
+}
+
+pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.offset_row = app.offset_row.saturating_sub(app.window_height - app.cursor_row - 1);
+    app.cursor_row = 0;
+
+    render_view(app, stdout)?;
+    execute!(stdout, cursor::MoveToRow(app.cursor_row))
 }
 
 pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.untag();
-    render_view(&app, stdout)
+    render_view(app, stdout)
 }
 
 pub fn handle_v(app: &mut App) -> std::io::Result<()> {

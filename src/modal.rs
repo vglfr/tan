@@ -17,7 +17,7 @@ struct Chunk {
 pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_view_mode();
     execute!(stdout, cursor::Show)?;
-    view::render_view(&app, stdout)
+    view::render_view(app, stdout)
 }
 
 pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {

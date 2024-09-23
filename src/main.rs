@@ -17,7 +17,7 @@ use crossterm::{
 use crate::helper::Mode;
 
 fn main() -> std::io::Result<()> {
-    let fname = std::env::args().nth(1).unwrap_or("test.txt".to_string());
+    let fname = std::env::args().nth(1).unwrap_or("test2.txt".to_string());
     let qname = format!("data/{fname}.tan");
 
     let mut stdout = std::io::stdout();
@@ -82,7 +82,11 @@ fn main() -> std::io::Result<()> {
                     'l' => common::handle_l(&mut app, &mut stdout)?,
 
                     'H' => view::handle_H(&mut app, &mut stdout)?,
+                    'M' => view::handle_M(&mut app, &mut stdout)?,
                     'L' => view::handle_L(&mut app, &mut stdout)?,
+
+                    '\x11' => view::handle_pg_down(&mut app, &mut stdout)?,
+                    '\x12' => view::handle_pg_up(&mut app, &mut stdout)?,
 
                     // wb{} movement (later WB + g-seSE)
                     // 'w' => { break; }
@@ -122,6 +126,8 @@ fn extract_keycode() -> std::io::Result<char> {
         Event::Key(event) => match event.code {
             KeyCode::Char(c) => match c {
                 'h' if event.modifiers == KeyModifiers::CONTROL => Ok('\x08'),
+                'n' if event.modifiers == KeyModifiers::CONTROL => Ok('\x11'),
+                'p' if event.modifiers == KeyModifiers::CONTROL => Ok('\x12'),
                 c => Ok(c),
             },
             KeyCode::Backspace => Ok('\x08'),
