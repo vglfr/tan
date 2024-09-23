@@ -1,9 +1,7 @@
 use std::io::{Stdout, Write};
 
 use crossterm::{
-    cursor,
-    queue,
-    style::{self, Color}, terminal::{self, ClearType},
+    cursor, execute, queue, style::{self, Color}, terminal::{self, ClearType}
 };
 use serde::{Deserialize, Serialize};
 
@@ -16,10 +14,21 @@ struct Chunk {
     color: Color,
 }
 
+#[allow(non_snake_case)]
+pub fn handle_H(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_row = 0;
+    execute!(stdout, cursor::MoveToRow(0))
+}
+
+#[allow(non_snake_case)]
+pub fn handle_L(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_row = app.window_height - 1;
+    execute!(stdout, cursor::MoveToRow(app.window_height))
+}
+
 pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.untag();
-    render_view(&app, stdout)?;
-    Ok(())
+    render_view(&app, stdout)
 }
 
 pub fn handle_v(app: &mut App) -> std::io::Result<()> {
@@ -34,13 +43,16 @@ pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     queue!(stdout, cursor::SavePosition)?;
     queue!(stdout, terminal::Clear(ClearType::All))?;
 
-    for line in &app.lines {
+    let start = app.offset_row as usize;
+    let end = std::cmp::min(app.window_height + app.offset_row, app.nlines) as usize;
+
+    for line in &app.lines[start..end] {
         for chunk in chunk_line(line, app) {
             let text = &line.text[chunk.start.into()..chunk.end.into()];
 
             queue!(
                 stdout,
-                cursor::MoveTo(chunk.start, line.row),
+                cursor::MoveTo(chunk.start, line.row - app.offset_row),
                 style::SetBackgroundColor(chunk.color),
                 style::Print(text),
             )?;
@@ -48,13 +60,11 @@ pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 
     queue!(stdout, cursor::RestorePosition)?;
-    stdout.flush()?;
-
-    Ok(())
+    stdout.flush()
 }
 
 fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
-    let mut points = vec![0, line.width];
+    let mut points = vec![0, std::cmp::min(line.width, app.window_width)];
 
     let starts = line.tags.iter().map(|x| x.start);
     let ends = line.tags.iter().map(|x| x.end);
@@ -82,18 +92,6 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
             };
         Chunk { start: s, end: *e, color }
     }).collect();
-
-    // if line.row == 1 {
-    //     let mut f = File::create("/tmp/dbg.json").unwrap();
-
-    //     let s = serde_json::to_string(&points).unwrap();
-    //     f.write_all(s.as_bytes()).unwrap();
-
-    //     let s2 = serde_json::to_string(&chunks).unwrap();
-    //     f.write_all(s2.as_bytes()).unwrap();
-
-    //     f.write_all(serde_json::to_string(&line).unwrap().as_bytes()).unwrap();
-    // }
 
     chunks
 }

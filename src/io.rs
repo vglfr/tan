@@ -48,11 +48,7 @@ fn load_src(fname: &str, qname: &str) -> std::io::Result<App> {
         color_column: 0,
         cursor_column: 0,
         cursor_row: 0,
-        height: lines.len() as u16,
-        modal_row: 0,
-        modal_start_column: 0,
-        modal_start_row: 0,
-        mode: Mode::View,
+        nlines: lines.len() as u16,
         labels: vec![
             Label { name: "label1".to_owned(), color: Color::Red },
             Label { name: "lab2".to_owned(), color: Color::Yellow },
@@ -60,6 +56,11 @@ fn load_src(fname: &str, qname: &str) -> std::io::Result<App> {
             Label { name: "label4label4".to_owned(), color: Color::Green },
         ],
         lines,
+        modal_row: 0,
+        modal_start_column: 0,
+        modal_start_row: 0,
+        mode: Mode::View,
+        offset_row: 0,
         visual_row: 0,
         visual_start: 0,
         visual_end: 0,
@@ -81,4 +82,9 @@ pub fn save_tan(app: &App) -> std::io::Result<()> {
 
     f.write_all(s.as_bytes())?;
     Ok(())
+}
+
+pub fn dump_debug(app: &App) -> std::io::Result<()> {
+    let mut f = File::create("/tmp/dbg.json").unwrap();
+    f.write_all(serde_json::to_string(&app).unwrap().as_bytes())
 }

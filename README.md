@@ -30,11 +30,21 @@ Tasks:
 + add cursor to TUI (/ and show it in different color)
 + navigate cursor with hjkl
 + wrap around newline with hjkl
-- use mouse to set cursor position
-- scroll long text with jk
-- use mouse wheel for scrolling
-- select with wb
-- use mouse for selection
 + tag / untag selection with hotkey (t / u ?)
 + display tag information in the bottom
-~ save tagged file to disk
++ save tagged file to disk
+
+- vertical scroll
+- horizontal wrap/scroll
+- wb movement
+- active tag
+- display tag hotkeys in modal
+- save to spacy format
+
+- overlapping tags
+- multiline tagging
+- helix-like select (when moving with wb)
+- extra vertical movements ({,},c-n,c-p}
+- use mouse to set cursor position
+- use mouse for selection
+- use mouse wheel for scrolling

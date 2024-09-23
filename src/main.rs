@@ -17,7 +17,7 @@ use crossterm::{
 use crate::helper::Mode;
 
 fn main() -> std::io::Result<()> {
-    let fname = std::env::args().nth(1).unwrap_or("flake.nix".to_string());
+    let fname = std::env::args().nth(1).unwrap_or("test.txt".to_string());
     let qname = format!("data/{fname}.tan");
 
     let mut stdout = std::io::stdout();
@@ -35,6 +35,7 @@ fn main() -> std::io::Result<()> {
         match keycode {
             'q' => break,
             'w' => io::save_tan(&app)?,
+            'D' => io::dump_debug(&app)?,
             _ => (),
         }
 
@@ -79,6 +80,9 @@ fn main() -> std::io::Result<()> {
                     'j' => common::handle_j(&mut app, &mut stdout)?,
                     'k' => common::handle_k(&mut app, &mut stdout)?,
                     'l' => common::handle_l(&mut app, &mut stdout)?,
+
+                    'H' => view::handle_H(&mut app, &mut stdout)?,
+                    'L' => view::handle_L(&mut app, &mut stdout)?,
 
                     // wb{} movement (later WB + g-seSE)
                     // 'w' => { break; }
