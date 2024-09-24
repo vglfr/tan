@@ -88,8 +88,8 @@ fn main() -> std::io::Result<()> {
                     '\x11' => view::handle_pg_down(&mut app, &mut stdout)?,
                     '\x12' => view::handle_pg_up(&mut app, &mut stdout)?,
 
-                    's' => view::handle_s(&mut app, &mut stdout)?,
-                    'e' => view::handle_e(&mut app, &mut stdout)?,
+                    's' => common::handle_s(&mut app, &mut stdout)?,
+                    'e' => common::handle_e(&mut app, &mut stdout)?,
 
                     // wb{} movement (later WB + g-seSE)
                     // 'w' => { break; }

@@ -27,6 +27,7 @@ pub struct App {
     pub nlines: u16,
     pub offset_column: u16,
     pub offset_row: u16,
+    // pub virtual_column: u16,
     pub visual_row: u16,
     pub visual_start: u16,
     pub visual_end: u16,

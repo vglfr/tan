@@ -48,22 +48,6 @@ pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     execute!(stdout, cursor::MoveToRow(app.cursor_row))
 }
 
-pub fn handle_s(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_column = 0;
-    app.offset_column = 0;
-
-    render_view(app, stdout)?;
-    execute!(stdout, cursor::MoveToColumn(app.cursor_column))
-}
-
-pub fn handle_e(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_column = std::cmp::min(app.lines[(app.cursor_row + app.offset_row) as usize].width - 1, app.window_width - 1);
-    app.offset_column = app.lines[(app.cursor_row + app.offset_row) as usize].width - app.cursor_column - 1;
-
-    render_view(app, stdout)?;
-    execute!(stdout, cursor::MoveToColumn(app.cursor_column))
-}
-
 pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.untag();
     render_view(app, stdout)
@@ -78,7 +62,7 @@ pub fn handle_v(app: &mut App) -> std::io::Result<()> {
 }
 
 pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
-    queue!(stdout, cursor::SavePosition)?;
+    // queue!(stdout, cursor::SavePosition)?;
     queue!(stdout, terminal::Clear(ClearType::All))?;
 
     let start = app.offset_row as usize;
@@ -97,7 +81,8 @@ pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
         }
     }
 
-    queue!(stdout, cursor::RestorePosition)?;
+    queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
+    // queue!(stdout, cursor::RestorePosition)?;
     stdout.flush()
 }
 

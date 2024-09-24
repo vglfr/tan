@@ -33,18 +33,24 @@ Tasks:
 + tag / untag selection with hotkey (t / u ?)
 + display tag information in the bottom
 + save tagged file to disk
++ vertical scroll
++ horizontal wrap/scroll
 
-- vertical scroll
-- horizontal wrap/scroll
-- wb movement
+- restore hl wrapping moves
+- restore jk wrapping moves
+- virtual column
+- fix visual selection
+- fix modal resize
 - active tag
 - display tag hotkeys in modal
+- status line (active tag, mode)
+- wb movement
 - save to spacy format
 
 - overlapping tags
 - multiline tagging
 - helix-like select (when moving with wb)
-- extra vertical movements ({,},c-n,c-p}
+~ extra vertical movements ({,},c-n,c-p}
 - use mouse to set cursor position
 - use mouse for selection
 - use mouse wheel for scrolling

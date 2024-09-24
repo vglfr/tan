@@ -62,6 +62,7 @@ fn load_src(fname: &str, qname: &str) -> std::io::Result<App> {
         mode: Mode::View,
         offset_column: 0,
         offset_row: 0,
+        // virtual_column: 0,
         visual_row: 0,
         visual_start: 0,
         visual_end: 0,
