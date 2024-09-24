@@ -57,7 +57,7 @@ pub fn handle_s(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_e(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_column = std::cmp::min(app.lines[(app.cursor_row + app.offset_row) as usize].width, app.window_width - 1);
+    app.cursor_column = std::cmp::min(app.lines[(app.cursor_row + app.offset_row) as usize].width - 1, app.window_width - 1);
     app.offset_column = app.lines[(app.cursor_row + app.offset_row) as usize].width - app.cursor_column - 1;
 
     render_view(app, stdout)?;

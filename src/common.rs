@@ -60,8 +60,8 @@ pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    if app.cursor_column + app.offset_column < app.lines[app.cursor_row as usize].width - 1 {
-        if app.cursor_column < app.window_width - 1 { // app.lines[app.cursor_row as usize].width {
+    if app.cursor_column + app.offset_column < app.lines[(app.cursor_row + app.offset_row) as usize].width - 1 {
+        if app.cursor_column < app.window_width - 1 {
             app.cursor_column += 1;
             render_move(app, stdout)
         } else {

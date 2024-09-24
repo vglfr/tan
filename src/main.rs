@@ -17,7 +17,7 @@ use crossterm::{
 use crate::helper::Mode;
 
 fn main() -> std::io::Result<()> {
-    let fname = std::env::args().nth(1).unwrap_or("test5.txt".to_string());
+    let fname = std::env::args().nth(1).unwrap_or("test.txt".to_string());
     let qname = format!("data/{fname}.tan");
 
     let mut stdout = std::io::stdout();

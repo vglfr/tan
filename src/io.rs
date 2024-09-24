@@ -46,8 +46,8 @@ fn load_src(fname: &str, qname: &str) -> std::io::Result<App> {
         fname: fname.to_owned(),
         qname: qname.to_owned(),
         color_column: 0,
-        cursor_column: 80,
-        cursor_row: 3,
+        cursor_column: 0,
+        cursor_row: 0,
         nlines: lines.len() as u16,
         labels: vec![
             Label { name: "label1".to_owned(), color: Color::Red },
