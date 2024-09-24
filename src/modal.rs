@@ -21,8 +21,12 @@ pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.labels.push(Label { name: "new_label".to_owned(), color: Color::Red });
-    render_modal(app, stdout)
+    if app.labels.len() < 12 {
+        app.labels.push(Label { name: "new_label".to_owned(), color: Color::Red });
+        render_modal(app, stdout)
+    } else {
+        Ok(())
+    }
 }
 
 pub fn handle_d(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {

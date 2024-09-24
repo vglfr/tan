@@ -5,13 +5,20 @@ use crossterm::{cursor, execute};
 use crate::{helper::App, modal, view};
 
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    if app.cursor_column > 0 {
+    if app.cursor_column > 0 { // app.lines[app.cursor_row as usize].width {
         app.cursor_column = app.cursor_column.saturating_sub(1);
-    } else if app.cursor_row > 0 {
-        app.cursor_column = app.lines[app.cursor_row.saturating_sub(1) as usize].width.saturating_sub(1);
-        app.cursor_row = app.cursor_row.saturating_sub(1);
+        render_move(app, stdout)
+    } else {
+        app.offset_column = app.offset_column.saturating_sub(1);
+        view::render_view(app, stdout)
     }
-    render_move(app, stdout)
+
+    // if app.cursor_column > 0 {
+    //     app.cursor_column = app.cursor_column.saturating_sub(1);
+    // } else if app.cursor_row > 0 {
+    //     app.cursor_column = app.lines[app.cursor_row.saturating_sub(1) as usize].width.saturating_sub(1);
+    //     app.cursor_row = app.cursor_row.saturating_sub(1);
+    // }
 }
 
 pub fn handle_j(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -53,13 +60,24 @@ pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    if app.cursor_column < app.lines[app.cursor_row as usize].width.saturating_sub(1) {
-        app.cursor_column += 1;
-    } else if app.cursor_row < app.nlines.saturating_sub(1) {
-        app.cursor_column = 0;
-        app.cursor_row += 1;
+    if app.cursor_column + app.offset_column < app.lines[app.cursor_row as usize].width - 1 {
+        if app.cursor_column < app.window_width - 1 { // app.lines[app.cursor_row as usize].width {
+            app.cursor_column += 1;
+            render_move(app, stdout)
+        } else {
+            app.offset_column += 1;
+            view::render_view(app, stdout)
+        }
+    } else {
+        Ok(())
     }
-    render_move(app, stdout)
+
+    // if app.cursor_column < app.lines[app.cursor_row as usize].width.saturating_sub(1) {
+    //     app.cursor_column += 1;
+    // } else if app.cursor_row < app.nlines.saturating_sub(1) {
+    //     app.cursor_column = 0;
+    //     app.cursor_row += 1;
+    // }
 }
 
 pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {

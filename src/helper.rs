@@ -25,6 +25,7 @@ pub struct App {
     pub modal_start_row: u16,
     pub mode: Mode,
     pub nlines: u16,
+    pub offset_column: u16,
     pub offset_row: u16,
     pub visual_row: u16,
     pub visual_start: u16,
