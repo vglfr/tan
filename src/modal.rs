@@ -22,7 +22,7 @@ pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     if app.labels.len() < 12 {
-        app.labels.push(Label { name: "new_label".to_owned(), color: Color::Red });
+        app.labels.push(Label { name: "new_label".to_owned(), color: Color::Red, is_active: false });
         render_modal(app, stdout)
     } else {
         Ok(())
@@ -63,6 +63,15 @@ pub fn handle_c(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_color_mode();
     app.color_column = helper::COLORS.iter().position(|x| x == &app.labels[app.modal_row as usize].color).unwrap() as i8;
     color::render_color(app, stdout)
+}
+
+#[allow(non_snake_case)]
+pub fn handle_A(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.labels[app.modal_active].is_active = false;
+    app.modal_active = app.modal_row as usize;
+
+    app.labels[app.modal_active].is_active = true;
+    render_modal(app, stdout)
 }
 
 pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -107,6 +116,8 @@ fn chunk_lines(app: &mut App) -> Vec<Vec<Chunk>> {
 fn chunk_label(label: &Label, width: usize) -> Vec<Chunk> {
     let mut chunks = Vec::new();
 
+    chunks.push(Chunk { text: "  ".to_owned(), color: Color::Black });
+    chunks.push(Chunk { text: if label.is_active { "A".to_owned() } else { " ".to_owned() }, color: Color::Black });
     chunks.push(Chunk { text: "  ".to_owned(), color: Color::Black });
     chunks.push(Chunk { text: "        ".to_owned(), color: label.color });
     chunks.push(Chunk { text: "    ".to_owned(), color: Color::Black });

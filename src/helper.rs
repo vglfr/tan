@@ -20,6 +20,7 @@ pub struct App {
     pub cursor_row: u16,
     pub labels: Vec<Label>,
     pub lines: Vec<Line>,
+    pub modal_active: usize,
     pub modal_row: i8,
     pub modal_start_column: u16,
     pub modal_start_row: u16,
@@ -50,7 +51,7 @@ impl App {
 
         if s != e {
             self.lines[(self.cursor_row + self.offset_row) as usize].tags.push(
-                Tag { start: s, end: e, label: self.labels[3].clone()}
+                Tag { start: s, end: e, label: self.labels[self.modal_active].clone()}
             );
         }
     }
@@ -99,6 +100,7 @@ impl App {
 pub struct Label {
     pub name: String,
     pub color: Color,
+    pub is_active: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

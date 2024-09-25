@@ -61,6 +61,8 @@ fn main() -> std::io::Result<()> {
 
                     'n' => modal::handle_n(&mut app, &mut stdout)?,
                     'c' => modal::handle_c(&mut app, &mut stdout)?,
+
+                    'A' => modal::handle_A(&mut app, &mut stdout)?,
                     _ => (),
                 },
             Mode::Name =>
