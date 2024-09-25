@@ -62,7 +62,6 @@ pub fn handle_v(app: &mut App) -> std::io::Result<()> {
 }
 
 pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
-    // queue!(stdout, cursor::SavePosition)?;
     queue!(stdout, terminal::Clear(ClearType::All))?;
 
     let start = app.offset_row as usize;
@@ -82,7 +81,6 @@ pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 
     queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
-    // queue!(stdout, cursor::RestorePosition)?;
     stdout.flush()
 }
 
