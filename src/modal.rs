@@ -30,6 +30,7 @@ pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_d(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    // handle view
     if app.labels.len() > 1 {
         app.labels.remove(app.modal_row as usize);
         app.modal_row = (app.modal_row - 1).rem_euclid(app.labels.len() as i8);
@@ -52,7 +53,7 @@ pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 pub fn handle_n(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_name_mode();
 
-    let col = app.modal_start_column + app.labels[app.modal_row as usize].name.len() as u16 + 14;
+    let col = app.modal_start_column + app.labels[app.modal_row as usize].name.len() as u16 + 17;
     let row = app.modal_start_row + app.modal_row as u16 + 1;
 
     execute!(stdout, cursor::MoveTo(col, row))?;
@@ -104,8 +105,8 @@ fn chunk_lines(app: &mut App) -> Vec<Vec<Chunk>> {
     let width = app.labels.iter().fold(0, |acc, x| std::cmp::max(acc, x.name.len()));
     let mut lines = app.labels.iter().map(|x| chunk_label(x, width)).collect::<Vec<Vec<Chunk>>>();
 
-    lines.insert(0, vec![Chunk { text: format!("{:width$}", "", width=width+16), color: Color::Black }]);
-    lines.push(vec![Chunk { text: format!("{:width$}", "", width=width+16), color: Color::Black }]);
+    lines.insert(0, vec![Chunk { text: format!("{:width$}", "", width=width+19), color: Color::Black }]);
+    lines.push(vec![Chunk { text: format!("{:width$}", "", width=width+19), color: Color::Black }]);
 
     app.modal_start_column = (app.window_width - lines[0][0].text.len() as u16) / 2;
     app.modal_start_row = (app.window_height - lines.len() as u16) / 2;

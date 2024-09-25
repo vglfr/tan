@@ -115,10 +115,10 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     points.push(std::cmp::min(app.offset_column + app.window_width, line.width));
 
     let chunks = points[1..].iter().zip(points.clone()).filter_map(|(e,s)| {
-        let tag = line.tags.iter().find_map(|x| if s == x.start { Some(x.label.color) } else { None });
+        let tag = line.tags.iter().find_map(|x| if s == x.start { Some(x.label) } else { None });
         let color =
             if tag.is_some() {
-                tag.unwrap()
+                app.labels[tag.unwrap()].color
             } else if app.visual_row == line.row && s == app.get_visual_bounds().0 && app.visual_start != app.visual_end {
                 Color::Yellow
             } else {

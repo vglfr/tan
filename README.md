@@ -38,16 +38,19 @@ Tasks:
 + restore hl wrapping moves
 + restore jk wrapping moves
 + fix visual selection
++ active tag
 
 - fix modal resize
-- active tag
-- display tag hotkeys in modal
+- save to spacy format
 - status line (active tag, mode)
 - wb movement
-- save to spacy format
 
 - overlapping tags
 - virtual column
+- error handling
+- debug logging
+- clap
+- display tag hotkeys in modal
 - multiline tagging
 - helix-like select (when moving with wb)
 ~ extra vertical movements ({,},c-n,c-p}

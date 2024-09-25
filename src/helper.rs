@@ -51,7 +51,7 @@ impl App {
 
         if s != e {
             self.lines[(self.cursor_row + self.offset_row) as usize].tags.push(
-                Tag { start: s, end: e, label: self.labels[self.modal_active].clone()}
+                Tag { start: s, end: e, label: self.modal_active}
             );
         }
     }
@@ -124,5 +124,5 @@ pub enum Mode {
 pub struct Tag {
     pub start: u16,
     pub end: u16,
-    pub label: Label,
+    pub label: usize,
 }
