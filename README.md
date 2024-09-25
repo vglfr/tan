@@ -35,11 +35,10 @@ Tasks:
 + save tagged file to disk
 + vertical scroll
 + horizontal wrap/scroll
++ restore hl wrapping moves
++ restore jk wrapping moves
++ fix visual selection
 
-- restore hl wrapping moves
-- restore jk wrapping moves
-- virtual column
-- fix visual selection
 - fix modal resize
 - active tag
 - display tag hotkeys in modal
@@ -48,6 +47,7 @@ Tasks:
 - save to spacy format
 
 - overlapping tags
+- virtual column
 - multiline tagging
 - helix-like select (when moving with wb)
 ~ extra vertical movements ({,},c-n,c-p}

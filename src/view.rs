@@ -61,7 +61,7 @@ pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 pub fn handle_v(app: &mut App) {
     app.set_visual_mode();
-    app.visual_row = app.cursor_row;
+    app.visual_row = app.cursor_row + app.offset_row;
     app.visual_start = app.cursor_column;
     app.visual_end = app.cursor_column;
 }
@@ -98,7 +98,7 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     points.extend(starts);
     points.extend(ends);
 
-    if app.is_visual() && app.visual_row == line.row {
+    if app.visual_row == line.row {
         let (s,e) = app.get_visual_bounds();
         points.push(s);
         points.push(e);
@@ -107,14 +107,16 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     points.sort();
     points.dedup();
 
-    points = points.into_iter().filter(|x| app.offset_column < *x && *x < std::cmp::min(app.offset_column + app.window_width, line.width)).collect();
+    points = points.into_iter().filter(
+        |x| app.offset_column < *x && *x < std::cmp::min(app.offset_column + app.window_width, line.width)
+    ).collect();
 
     points.insert(0, app.offset_column);
     points.push(std::cmp::min(app.offset_column + app.window_width, line.width));
 
-    let chunks: Vec<Chunk> = points[1..].iter().zip(points.clone()).filter_map(|(e,s)| {
+    let chunks = points[1..].iter().zip(points.clone()).filter_map(|(e,s)| {
         let color =
-            if app.is_visual() && app.visual_row == line.row && s == std::cmp::min(app.visual_start, app.visual_end) {
+            if app.visual_row == line.row && s == app.get_visual_bounds().0 && app.visual_start != app.visual_end {
                 Color::Yellow
             } else if line.tags.iter().any(|x| s == x.start) {
                 Color::Red

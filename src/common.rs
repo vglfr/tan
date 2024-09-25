@@ -7,19 +7,18 @@ use crate::{helper::App, modal, view};
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     if app.cursor_column > 0 {
         app.cursor_column -= 1;
-        view::render_view(app, stdout)
     } else if app.offset_column > 0 {
         app.offset_column -= 1;
-        view::render_view(app, stdout)
     } else if app.cursor_row > 0 {
         app.cursor_row -= 1;
-        handle_e(app, stdout)
+        manage_horizontal_overflow(app);
     } else if app.offset_row > 0 {
         app.offset_row -= 1;
-        handle_e(app, stdout)
-    } else {
-        Ok(())
+        manage_horizontal_overflow(app);
     }
+
+    move_visual(app);
+    view::render_view(app, stdout)
 }
 
 pub fn handle_j(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -45,11 +44,9 @@ pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let width = app.lines[(app.cursor_row + app.offset_row) as usize].width;
-
-    if app.cursor_column + app.offset_column < width - 1 && app.cursor_column < app.window_width - 1 {
+    if app.cursor_column + app.offset_column < app.current_linewidth() - 1 && app.cursor_column < app.window_width - 1 {
         app.cursor_column += 1;
-    } else if app.cursor_column + app.offset_column < width - 1 {
+    } else if app.cursor_column + app.offset_column < app.current_linewidth() - 1 {
         app.offset_column += 1;
     } else if app.cursor_row < app.window_height - 1 {
         app.offset_column = 0;
@@ -61,6 +58,7 @@ pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         app.offset_row += 1;
     }
 
+    move_visual(app);
     view::render_view(app, stdout)
 }
 
@@ -72,11 +70,8 @@ pub fn handle_s(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_e(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_column = std::cmp::min(app.current_linewidth() - 1, app.window_width - 1);
-    app.offset_column = app.current_linewidth() - app.cursor_column - 1;
-
-    view::render_view(app, stdout)?;
-    execute!(stdout, cursor::MoveToColumn(app.cursor_column))
+    manage_horizontal_overflow(app);
+    view::render_view(app, stdout)
 }
 
 pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -89,7 +84,9 @@ pub fn handle_t(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.tag();
     app.set_view_mode();
 
-    app.visual_end = app.cursor_column;
+    app.visual_start = app.cursor_column;
+    app.visual_end = app.visual_start;
+
     view::render_view(app, stdout)
 }
 
@@ -101,11 +98,13 @@ pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     modal::render_modal(app, stdout)
 }
 
-// fn render_move(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-//     execute!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
-//     if app.is_visual() && app.cursor_row == app.visual_row {
-//         app.visual_end = app.cursor_column;
-//     }
+fn manage_horizontal_overflow(app: &mut App) {
+    app.cursor_column = std::cmp::min(app.current_linewidth() - 1, app.window_width - 1);
+    app.offset_column = app.current_linewidth() - app.cursor_column - 1;
+}
 
-//     view::render_view(app, stdout)
-// }
+fn move_visual(app: &mut App) {
+    if app.is_visual() && app.cursor_row + app.offset_row == app.visual_row {
+        app.visual_end = app.cursor_column;
+    }
+}

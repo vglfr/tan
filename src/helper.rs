@@ -27,7 +27,6 @@ pub struct App {
     pub nlines: u16,
     pub offset_column: u16,
     pub offset_row: u16,
-    // pub virtual_column: u16,
     pub visual_row: u16,
     pub visual_start: u16,
     pub visual_end: u16,
@@ -39,7 +38,7 @@ impl App {
     pub fn get_visual_bounds(&self) -> (u16, u16) {
         let mut a = [self.visual_start, self.visual_end];
         a.sort();
-        (a[0], a[1] + 1)
+        (a[0], a[1])
     }
 
     pub fn current_linewidth(&mut self) -> u16 {
@@ -48,12 +47,19 @@ impl App {
 
     pub fn tag(&mut self) {
         let (s,e) = self.get_visual_bounds();
-        self.lines[self.visual_row as usize].tags.push(Tag { start: s, end: e, label: Label { name: "tag1".to_owned(), color: Color::Red }});
+
+        if s != e {
+            self.lines[(self.cursor_row + self.offset_row) as usize].tags.push(
+                Tag { start: s, end: e, label: Label { name: "tag1".to_owned(), color: Color::Red }}
+            );
+        }
     }
 
     pub fn untag(&mut self) {
         let tags = self.lines[self.cursor_row as usize].tags.clone();
-        self.lines[self.cursor_row as usize].tags = tags.into_iter().filter(|x| !(x.start <= self.cursor_column && self.cursor_column <= x.end)).collect::<_>();
+        self.lines[(self.cursor_row + self.offset_row) as usize].tags = tags.into_iter().filter(
+            |x| !(x.start <= self.cursor_column && self.cursor_column < x.end)
+        ).collect();
     }
 
     pub fn is_modal(&self) -> bool {
