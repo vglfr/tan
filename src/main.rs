@@ -98,7 +98,7 @@ fn main() -> std::io::Result<()> {
                     // '}' => { break; }
 
                     'm' => common::handle_m(&mut app, &mut stdout)?,
-                    'v' => view::handle_v(&mut app)?,
+                    'v' => view::handle_v(&mut app),
 
                     't' => common::handle_t(&mut app, &mut stdout)?,
                     'u' => view::handle_u(&mut app, &mut stdout)?,
@@ -111,7 +111,7 @@ fn main() -> std::io::Result<()> {
 
                     'm' => common::handle_m(&mut app, &mut stdout)?,
                     't' => common::handle_t(&mut app, &mut stdout)?,
-                    'v' => visual::handle_v(&mut app)?,
+                    'v' => visual::handle_v(&mut app),
                     _ => (),
                 },
         }

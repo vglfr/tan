@@ -5,12 +5,6 @@ use crossterm::{cursor, execute};
 use crate::{helper::App, modal, view};
 
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    // move cursor one left
-    // move screen one left
-    // move to the end of previous line and adjust screen to move right if needed
-    // same + scrolling up one line
-    // do nothing if start of file
-
     if app.cursor_column > 0 {
         app.cursor_column -= 1;
         view::render_view(app, stdout)
@@ -35,52 +29,22 @@ pub fn handle_j(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         app.offset_row += 1;
     }
 
-    let width = app.lines[(app.cursor_row + app.offset_row) as usize].width;
-
-    if width - 1 < app.offset_column { // end of new line is left of the screen
-        app.cursor_column = 0;
-        app.offset_column = width - 1;
-    } else if width - 1 < app.offset_column + app.cursor_column {
-        app.cursor_column = width - app.offset_column - 1;
-    }
-
+    view::manage_vertical_overflow(app);
     view::render_view(app, stdout)
 }
 
 pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    // move cursor one up
-    // move screen one up
-    // do nothing on top row
- 
     if app.cursor_row > 0 {
         app.cursor_row -= 1;
     } else if app.offset_row > 0 {
         app.offset_row -= 1;
     }
 
-    let width = app.lines[(app.cursor_row + app.offset_row) as usize].width;
-
-    // move cursor to the first visual column and move offset column accordinately if it's not on screen
-    // move cursor to the end of the line if this line is shorter than previous and is on screen
-    // do nothing if this line is longer than previous
-
-    if width - 1 < app.offset_column { // end of new line is left of the screen
-        app.cursor_column = 0;
-        app.offset_column = width - 1;
-    } else if width - 1 < app.offset_column + app.cursor_column {
-        app.cursor_column = width - app.offset_column - 1;
-    }
-
+    view::manage_vertical_overflow(app);
     view::render_view(app, stdout)
 }
 
 pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    // move cursor one right
-    // move screen one right
-    // move to the start of next line
-    // same + scroll down one
-    // do nothing if end of file
-
     let width = app.lines[(app.cursor_row + app.offset_row) as usize].width;
 
     if app.cursor_column + app.offset_column < width - 1 && app.cursor_column < app.window_width - 1 {
@@ -108,8 +72,8 @@ pub fn handle_s(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_e(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_column = std::cmp::min(app.lines[(app.cursor_row + app.offset_row) as usize].width - 1, app.window_width - 1);
-    app.offset_column = app.lines[(app.cursor_row + app.offset_row) as usize].width - app.cursor_column - 1;
+    app.cursor_column = std::cmp::min(app.current_linewidth() - 1, app.window_width - 1);
+    app.offset_column = app.current_linewidth() - app.cursor_column - 1;
 
     view::render_view(app, stdout)?;
     execute!(stdout, cursor::MoveToColumn(app.cursor_column))

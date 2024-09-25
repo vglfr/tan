@@ -1,7 +1,7 @@
 use std::io::{Stdout, Write};
 
 use crossterm::{
-    cursor, execute, queue, style::{self, Color}, terminal::{self, ClearType}
+    cursor, queue, style::{self, Color}, terminal::{self, ClearType}
 };
 use serde::{Deserialize, Serialize};
 
@@ -17,35 +17,41 @@ struct Chunk {
 #[allow(non_snake_case)]
 pub fn handle_H(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = 0;
-    execute!(stdout, cursor::MoveToRow(0))
+
+    manage_vertical_overflow(app);
+    render_view(app, stdout)
 }
 
 #[allow(non_snake_case)]
 pub fn handle_M(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = std::cmp::min(app.window_height / 2, app.nlines / 2);
-    execute!(stdout, cursor::MoveToRow(app.cursor_row))
+
+    manage_vertical_overflow(app);
+    render_view(app, stdout)
 }
 
 #[allow(non_snake_case)]
 pub fn handle_L(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = std::cmp::min(app.window_height - 1, app.nlines - 1);
-    execute!(stdout, cursor::MoveToRow(app.cursor_row))
+
+    manage_vertical_overflow(app);
+    render_view(app, stdout)
 }
 
 pub fn handle_pg_down(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.offset_row = std::cmp::min(app.offset_row + app.cursor_row, app.nlines.saturating_sub(app.window_height));
     app.cursor_row = std::cmp::min(app.window_height - 1, app.nlines - 1);
 
-    render_view(app, stdout)?;
-    execute!(stdout, cursor::MoveToRow(app.cursor_row))
+    manage_vertical_overflow(app);
+    render_view(app, stdout)
 }
 
 pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.offset_row = app.offset_row.saturating_sub(app.window_height - app.cursor_row - 1);
     app.cursor_row = 0;
 
-    render_view(app, stdout)?;
-    execute!(stdout, cursor::MoveToRow(app.cursor_row))
+    manage_vertical_overflow(app);
+    render_view(app, stdout)
 }
 
 pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -53,12 +59,11 @@ pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     render_view(app, stdout)
 }
 
-pub fn handle_v(app: &mut App) -> std::io::Result<()> {
+pub fn handle_v(app: &mut App) {
     app.set_visual_mode();
     app.visual_row = app.cursor_row;
     app.visual_start = app.cursor_column;
     app.visual_end = app.cursor_column;
-    Ok(())
 }
 
 pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -120,4 +125,13 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     }).collect();
 
     chunks
+}
+
+pub fn manage_vertical_overflow(app: &mut App) {
+    if app.current_linewidth() - 1 < app.offset_column {
+        app.cursor_column = 0;
+        app.offset_column = app.current_linewidth() - 1;
+    } else if app.current_linewidth() - 1 < app.offset_column + app.cursor_column {
+        app.cursor_column = app.current_linewidth() - app.offset_column - 1;
+    }
 }

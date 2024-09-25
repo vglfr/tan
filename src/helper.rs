@@ -42,6 +42,10 @@ impl App {
         (a[0], a[1] + 1)
     }
 
+    pub fn current_linewidth(&mut self) -> u16 {
+        self.lines[(self.cursor_row + self.offset_row) as usize].width
+    }
+
     pub fn tag(&mut self) {
         let (s,e) = self.get_visual_bounds();
         self.lines[self.visual_row as usize].tags.push(Tag { start: s, end: e, label: Label { name: "tag1".to_owned(), color: Color::Red }});
