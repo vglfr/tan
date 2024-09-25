@@ -35,7 +35,5 @@ pub fn render_color(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 
     execute!(stdout, cursor::RestorePosition)?;
-    stdout.flush()?;
-
-    Ok(())
+    stdout.flush()
 }

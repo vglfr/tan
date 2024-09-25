@@ -7,11 +7,10 @@ pub mod name;
 pub mod view;
 pub mod visual;
 
+use std::io::Write;
+
 use crossterm::{
-    cursor,
-    event::{read, Event, KeyCode, KeyModifiers},
-    execute,
-    terminal,
+    cursor, event::{read, Event, KeyCode, KeyModifiers}, queue, terminal
 };
 
 use crate::helper::Mode;
@@ -24,9 +23,9 @@ fn main() -> std::io::Result<()> {
     terminal::enable_raw_mode()?;
 
     let mut app = io::load_file(&fname, &qname)?;
-    execute!(stdout, terminal::EnterAlternateScreen)?;
+    queue!(stdout, terminal::EnterAlternateScreen)?;
 
-    execute!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
+    queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
     view::render_view(&app, &mut stdout)?;
 
     loop {
@@ -118,10 +117,11 @@ fn main() -> std::io::Result<()> {
 
     }
 
-    execute!(stdout, terminal::LeaveAlternateScreen)?;
-    terminal::disable_raw_mode()?;
+    queue!(stdout, terminal::LeaveAlternateScreen)?;
+    queue!(stdout, cursor::Show)?;
 
-    Ok(())
+    terminal::disable_raw_mode()?;
+    stdout.flush()
 }
 
 fn extract_keycode() -> std::io::Result<char> {

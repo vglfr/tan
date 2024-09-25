@@ -50,7 +50,7 @@ impl App {
 
         if s != e {
             self.lines[(self.cursor_row + self.offset_row) as usize].tags.push(
-                Tag { start: s, end: e, label: Label { name: "tag1".to_owned(), color: Color::Red }}
+                Tag { start: s, end: e, label: self.labels[3].clone()}
             );
         }
     }

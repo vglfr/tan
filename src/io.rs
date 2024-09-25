@@ -81,8 +81,7 @@ pub fn save_tan(app: &App) -> std::io::Result<()> {
     let s = serde_json::to_string(&a)?;
     let mut f = File::create(&a.qname)?;
 
-    f.write_all(s.as_bytes())?;
-    Ok(())
+    f.write_all(s.as_bytes())
 }
 
 pub fn dump_debug(app: &App) -> std::io::Result<()> {
