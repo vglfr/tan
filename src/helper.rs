@@ -1,4 +1,4 @@
-use crossterm::style::Color;
+use crossterm::{style::Color, terminal::WindowSize};
 use serde::{Deserialize, Serialize};
 
 pub const COLORS: [Color; 7] = [
@@ -11,10 +11,9 @@ pub const COLORS: [Color; 7] = [
     Color::Cyan,
 ];
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct App {
     pub fname: String,
-    pub qname: String,
     pub color_column: i8,
     pub cursor_column: u16,
     pub cursor_row: u16,
@@ -36,6 +35,30 @@ pub struct App {
 }
 
 impl App {
+    pub fn new(fname: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize) -> App {
+        App {
+            fname: fname.to_owned(),
+            color_column: 0,
+            cursor_column: 0,
+            cursor_row: 0,
+            nlines: lines.len() as u16,
+            labels,
+            lines,
+            modal_active: 0,
+            modal_row: 0,
+            modal_start_column: 0,
+            modal_start_row: 0,
+            mode: Mode::View,
+            offset_column: 0,
+            offset_row: 0,
+            visual_row: 0,
+            visual_start: 0,
+            visual_end: 0,
+            window_height: window.rows,
+            window_width: window.columns,
+        }
+    }
+
     pub fn get_visual_bounds(&self) -> (u16, u16) {
         let mut a = [self.visual_start, self.visual_end];
         a.sort();
@@ -96,14 +119,21 @@ impl App {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq)]
+pub enum FType {
+    Raw,
+    Spacy,
+    Tan,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Label {
     pub name: String,
     pub color: Color,
     pub is_active: bool,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Line {
     pub row: u16,
     pub text: String,

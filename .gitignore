@@ -3,5 +3,3 @@ target/
 
 data/*
 !data/.gitkeep
-
-test*.txt

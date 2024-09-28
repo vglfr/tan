@@ -13,16 +13,25 @@ use crossterm::{
     cursor, event::{read, Event, KeyCode, KeyModifiers}, queue, terminal
 };
 
-use crate::helper::Mode;
+use helper::{FType, Mode};
 
 fn main() -> std::io::Result<()> {
-    let fname = std::env::args().nth(1).unwrap_or("test.txt".to_string());
-    let qname = format!("data/{fname}.tan");
+    // let fname = std::env::args().nth(1).unwrap_or("data/test.txt".to_string());
+    // let ftype = FType::Raw;
+
+    let fname = std::env::args().nth(1).unwrap_or("data/test.json".to_string());
+    let ftype = FType::Spacy;
+
+    // let fname = std::env::args().nth(1).unwrap_or("data/test.txt.tan".to_string());
+    // let ftype = FType::Tan;
+
+    // let fname = std::env::args().nth(1).unwrap_or("data/test.json.tan".to_string());
+    // let ftype = FType::Tan;
 
     let mut stdout = std::io::stdout();
     terminal::enable_raw_mode()?;
 
-    let mut app = io::load_file(&fname, &qname)?;
+    let mut app = io::load_file(&fname, ftype)?;
     queue!(stdout, terminal::EnterAlternateScreen)?;
 
     queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
@@ -33,7 +42,7 @@ fn main() -> std::io::Result<()> {
 
         match keycode {
             'q' => break,
-            'w' => io::save_tan(&app)?,
+            'w' => io::save_tan(&mut app)?,
             'D' => io::dump_debug(&app)?,
             _ => (),
         }
