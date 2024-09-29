@@ -51,7 +51,7 @@ pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     render_modal(app, stdout)
 }
 
-pub fn handle_n(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_i(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_name_mode();
 
     let col = app.modal_start_column + app.labels[app.modal_row as usize].name.len() as u16 + 17;

@@ -1,5 +1,20 @@
 ## TAN - Tiny Annotation Tool
 
+One phrase pitch.
+
+15-second usage gif
+
+One paragraph detalization.
+
+#### Installation
+
+- nix flake
+- crates.io
+
+#### Command line options
+
+#### Keybindings
+
 Not just an annotation tool. General annotation tool.
 Something which takes input text, keeps it unchanged,
 and allows any number of overlays over it. Overlays
@@ -39,11 +54,17 @@ Tasks:
 + restore jk wrapping moves
 + fix visual selection
 + active tag
++ fix modal resize
++ load spacy format
 
-- fix modal resize
-- save to spacy format
-- status line (active tag, mode)
-- wb movement
+- hide/unhide tags
+- wbSE movement
+- status line / hints (active tag -- filename | tags under cursor | command -- cursor posiiton)
+- proper command mode (:)
+- fix wrap line display
+- toggle wrap/unwrap mode
+- there's some blinking (too much redraw? even on non-redrawing hl moves)
+- save spacy format (for QA)
 
 - overlapping tags
 - virtual column
@@ -53,6 +74,8 @@ Tasks:
 - display tag hotkeys in modal
 - multiline tagging
 - helix-like select (when moving with wb)
+- screen resize
+- help screen
 ~ extra vertical movements ({,},c-n,c-p}
 - use mouse to set cursor position
 - use mouse for selection

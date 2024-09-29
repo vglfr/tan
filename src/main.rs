@@ -67,9 +67,10 @@ fn main() -> std::io::Result<()> {
                     'j' => modal::handle_j(&mut app, &mut stdout)?,
                     'k' => modal::handle_k(&mut app, &mut stdout)?,
 
-                    'n' => modal::handle_n(&mut app, &mut stdout)?,
+                    'i' => modal::handle_i(&mut app, &mut stdout)?,
                     'c' => modal::handle_c(&mut app, &mut stdout)?,
 
+                    // 'h' => modal::handle_h(&mut app, &mut stdout)?,
                     'A' => modal::handle_A(&mut app, &mut stdout)?,
                     _ => (),
                 },

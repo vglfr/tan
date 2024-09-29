@@ -139,7 +139,7 @@ fn read_slines(fname: &str, rng: &mut ThreadRng) -> std::io::Result<(Vec<Line>, 
         let start = ((ent.start - o) % w as u64) as u16;
         let end = ((ent.end - o) % w as u64) as u16;
 
-        if start < end || end != 0 {
+        if start < end || end == 0 {
             lines[n-1].tags.push(Tag {
                 start,
                 end,
