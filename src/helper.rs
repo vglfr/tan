@@ -134,6 +134,7 @@ pub struct Label {
     pub name: String,
     pub color: Color,
     pub is_active: bool,
+    pub is_visible: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

@@ -23,7 +23,14 @@ pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 pub fn handle_a(app: &mut App, stdout: &mut Stdout, rng: &mut ThreadRng) -> std::io::Result<()> {
     if app.labels.len() < 24 {
-        app.labels.push(Label { name: "new_label".to_owned(), color: *COLORS.choose(rng).unwrap(), is_active: false });
+        let label = Label {
+            name: "new_label".to_owned(),
+            color: *COLORS.choose(rng).unwrap(),
+            is_active: false,
+            is_visible: true,
+        };
+
+        app.labels.push(label);
         render_modal(app, stdout)
     } else {
         Ok(())
@@ -67,8 +74,15 @@ pub fn handle_c(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     color::render_color(app, stdout)
 }
 
+pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.labels[app.modal_row as usize].is_visible ^= true;
+
+    view::render_view(app, stdout)?;
+    render_modal(app, stdout)
+}
+
 #[allow(non_snake_case)]
-pub fn handle_A(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.labels[app.modal_active].is_active = false;
     app.modal_active = app.modal_row as usize;
 
@@ -80,7 +94,7 @@ pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     let lines = chunk_lines(app);
 
     execute!(stdout, cursor::SavePosition)?;
-    queue!(stdout, cursor::MoveTo(app.modal_start_column, app.modal_start_row))?;
+    queue!(stdout, cursor::MoveTo(app.modal_start_column - 1, app.modal_start_row))?;
 
     for (i, line) in lines.iter().enumerate() {
         for chunk in line {
@@ -93,7 +107,7 @@ pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         }
 
         queue!(stdout, cursor::MoveDown(1))?;
-        queue!(stdout, cursor::MoveToColumn(app.modal_start_column))?;
+        queue!(stdout, cursor::MoveToColumn(app.modal_start_column - 1))?;
     }
 
     execute!(stdout, cursor::RestorePosition)?;
@@ -106,8 +120,8 @@ fn chunk_lines(app: &mut App) -> Vec<Vec<Chunk>> {
     let width = app.labels.iter().fold(0, |acc, x| std::cmp::max(acc, x.name.len()));
     let mut lines = app.labels.iter().map(|x| chunk_label(x, width)).collect::<Vec<Vec<Chunk>>>();
 
-    lines.insert(0, vec![Chunk { text: format!("{:width$}", "", width=width+19), color: Color::Black }]);
-    lines.push(vec![Chunk { text: format!("{:width$}", "", width=width+19), color: Color::Black }]);
+    lines.insert(0, vec![Chunk { text: format!("{:width$}", "", width=width+20), color: Color::Black }]);
+    lines.push(vec![Chunk { text: format!("{:width$}", "", width=width+20), color: Color::Black }]);
 
     app.modal_start_column = (app.window_width - lines[0][0].text.len() as u16) / 2;
     app.modal_start_row = (app.window_height - lines.len() as u16) / 2;
@@ -120,6 +134,7 @@ fn chunk_label(label: &Label, width: usize) -> Vec<Chunk> {
 
     chunks.push(Chunk { text: "  ".to_owned(), color: Color::Black });
     chunks.push(Chunk { text: if label.is_active { "A".to_owned() } else { " ".to_owned() }, color: Color::Black });
+    chunks.push(Chunk { text: if label.is_visible { " ".to_owned() } else { "H".to_owned() }, color: Color::Black });
     chunks.push(Chunk { text: "  ".to_owned(), color: Color::Black });
     chunks.push(Chunk { text: "        ".to_owned(), color: label.color });
     chunks.push(Chunk { text: "    ".to_owned(), color: Color::Black });

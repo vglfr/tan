@@ -70,16 +70,18 @@ fn main() -> std::io::Result<()> {
                     'i' => modal::handle_i(&mut app, &mut stdout)?,
                     'c' => modal::handle_c(&mut app, &mut stdout)?,
 
-                    // 'h' => modal::handle_h(&mut app, &mut stdout)?,
-                    'A' => modal::handle_A(&mut app, &mut stdout)?,
+                    'h' => modal::handle_h(&mut app, &mut stdout)?,
+                    // isolate tag (hide all tags except this one) - H
+                    '\x0a' => modal::handle_0a(&mut app, &mut stdout)?,
                     _ => (),
                 },
             Mode::Name =>
                 match keycode {
                     c@'!'..='~' => name::handle_key(c, &mut app, &mut stdout)?,
+                    '\x08' => name::handle_08(&mut app, &mut stdout)?,
 
                     '\x1b' => common::handle_1b(&mut app, &mut stdout)?,
-                    '\x08' => name::handle_08(&mut app, &mut stdout)?,
+                    '\x0a' => common::handle_1b(&mut app, &mut stdout)?,
 
                     // 'c-u' => (),
                     _ => (),

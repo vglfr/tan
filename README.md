@@ -56,8 +56,8 @@ Tasks:
 + active tag
 + fix modal resize
 + load spacy format
++ hide/unhide tags
 
-- hide/unhide tags
 - wbSE movement
 - status line / hints (active tag -- filename | tags under cursor | command -- cursor posiiton)
 - proper command mode (:)

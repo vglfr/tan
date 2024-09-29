@@ -126,7 +126,8 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
         let tag = line.tags.iter().find_map(|x| if s == x.start { Some(x.label) } else { None });
         let color =
             if tag.is_some() {
-                app.labels[tag.unwrap()].color
+                let label = &app.labels[tag.unwrap()];
+                if label.is_visible { label.color } else { Color::Reset }
             } else if app.visual_row == line.row && s == app.get_visual_bounds().0 && app.visual_start != app.visual_end {
                 Color::Yellow
             } else {

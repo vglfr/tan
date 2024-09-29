@@ -42,10 +42,7 @@ pub fn load_file(fname: &str, ftype: FType, rng: &mut ThreadRng) -> std::io::Res
 fn load_raw(fname: &str) -> std::io::Result<App> {
     let lines = read_rlines(fname)?;
     let labels = vec![
-        Label { name: "label1".to_owned(), color: Color::Red, is_active: true },
-        Label { name: "lab2".to_owned(), color: Color::Yellow, is_active: false },
-        Label { name: "label3".to_owned(), color: Color::Blue, is_active: false },
-        Label { name: "label4label4".to_owned(), color: Color::Green, is_active: false },
+        Label { name: "new label".to_owned(), color: Color::Red, is_active: true, is_visible: true },
     ];
 
     let window = terminal::window_size().unwrap();
@@ -126,7 +123,7 @@ fn read_slines(fname: &str, rng: &mut ThreadRng) -> std::io::Result<(Vec<Line>, 
     let mut labels: Vec<Label> = spacy.ents.iter()
         .map(|x| x.label.clone())
         .unique()
-        .map(|x| Label { is_active: false, name: x, color: *COLORS.choose(rng).unwrap() })
+        .map(|x| Label { is_active: false, name: x, color: *COLORS.choose(rng).unwrap(), is_visible: true })
         .collect();
     labels[0].is_active = true;
 
