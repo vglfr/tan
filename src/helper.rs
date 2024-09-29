@@ -14,6 +14,9 @@ pub const COLORS: [Color; 7] = [
 #[derive(Debug, Deserialize, Serialize)]
 pub struct App {
     pub fname: String,
+    // #[allow(dead_code)]
+    // #[serde(skip)]
+    // pub rng: ThreadRng,
     pub color_column: i8,
     pub cursor_column: u16,
     pub cursor_row: u16,
@@ -135,10 +138,13 @@ pub struct Label {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Line {
+    pub char_offset: u64,
+    pub is_wrapping: bool,
     pub row: u16,
+    // pub whitespace_trim: String,
+    pub tags: Vec<Tag>,
     pub text: String,
     pub width: u16,
-    pub tags: Vec<Tag>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

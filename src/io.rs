@@ -3,9 +3,11 @@ use std::io::{BufRead, BufReader, Write};
 
 use crossterm::style::Color;
 use crossterm::terminal::{self, WindowSize};
+use itertools::Itertools;
+use rand::{rngs::ThreadRng, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
 
-use crate::helper::{App, FType, Label, Line, Mode};
+use crate::helper::{App, FType, Label, Line, Mode, Tag, COLORS};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Spacy {
@@ -22,15 +24,15 @@ struct Spacy {
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Ent {
-    end: u32,
+    end: u64,
     label: String,
-    start: u32,
+    start: u64,
 }
 
-pub fn load_file(fname: &str, ftype: FType) -> std::io::Result<App> {
+pub fn load_file(fname: &str, ftype: FType, rng: &mut ThreadRng) -> std::io::Result<App> {
     match ftype {
         FType::Raw => load_raw(fname),
-        FType::Spacy => load_spacy(fname),
+        FType::Spacy => load_spacy(fname, rng),
         FType::Tan => load_tan(fname),
     }
 
@@ -50,8 +52,8 @@ fn load_raw(fname: &str) -> std::io::Result<App> {
     Ok(App::new(fname, lines, labels, window))
 }
 
-fn load_spacy(fname: &str) -> std::io::Result<App> {
-    let (lines, labels, window) = read_slines(fname)?;
+fn load_spacy(fname: &str, rng: &mut ThreadRng) -> std::io::Result<App> {
+    let (lines, labels, window) = read_slines(fname, rng)?;
     Ok(App::new(fname, lines, labels, window))
 }
 
@@ -70,10 +72,12 @@ fn read_rlines(fname: &str) -> std::io::Result<Vec<Line>> {
 
     while b.read_line(&mut s).unwrap_or(0) > 0 {
         let l = Line {
+            char_offset: 0, // todo
+            is_wrapping: false,
             row: n,
+            tags: Vec::new(),
             text: s.strip_suffix("\n").map(|x| x.to_owned()).unwrap_or(s.clone()),
             width: s.len() as u16 - 1,
-            tags: Vec::new(),
         };
         lines.push(l);
 
@@ -84,20 +88,16 @@ fn read_rlines(fname: &str) -> std::io::Result<Vec<Line>> {
     Ok(lines)
 }
 
-fn read_slines(fname: &str) -> std::io::Result<(Vec<Line>, Vec<Label>, WindowSize)> {
+fn read_slines(fname: &str, rng: &mut ThreadRng) -> std::io::Result<(Vec<Line>, Vec<Label>, WindowSize)> {
     let f = File::open(fname).unwrap();
     let mut b = BufReader::new(f);
 
     let spacy: Spacy = serde_json::from_reader(&mut b)?;
     let window = terminal::window_size().unwrap();
 
-    // let lines = s.text.chars().collect::<Vec<char>>(); //.chunks(window.width as usize - 10);
-
     let mut lines: Vec<Line> = Vec::new();
     let mut n = 0;
     let mut k = 0;
-
-    // terminal::disable_raw_mode()?;
 
     while n < spacy.text.len() {
         let text = spacy.text[n..std::cmp::min(n + window.columns as usize, spacy.text.len())].to_owned();
@@ -108,23 +108,63 @@ fn read_slines(fname: &str) -> std::io::Result<(Vec<Line>, Vec<Label>, WindowSiz
             &text
         };
 
-        let line = Line { row: k, width: ttext.len() as u16, text: ttext.to_owned(), tags: Vec::new() };
+        let line = Line {
+            char_offset: if lines.is_empty() { 0 } else { lines[lines.len() - 1].char_offset + lines[lines.len() - 1].width as u64 },
+            is_wrapping: true,
+            row: k,
+            tags: Vec::new(),
+            text: ttext.to_owned(),
+            width: ttext.len() as u16,
+        };
+
         lines.push(line);
 
         k += 1;
         n += ttext.len();
     }
 
-    // take window length partition
-    // go backwards looking for a whitespace at most window/4 characters
-    // if found then copy
-    // otherwise just chunk on a long word (special symbol)
+    let mut labels: Vec<Label> = spacy.ents.iter()
+        .map(|x| x.label.clone())
+        .unique()
+        .map(|x| Label { is_active: false, name: x, color: *COLORS.choose(rng).unwrap() })
+        .collect();
+    labels[0].is_active = true;
 
+    for ent in spacy.ents {
+        let n = lines.iter().position(|x| x.char_offset > ent.start).unwrap();
+
+        let o = lines[n-1].char_offset;
+        let w = lines[n-1].width;
+
+        let start = ((ent.start - o) % w as u64) as u16;
+        let end = ((ent.end - o) % w as u64) as u16;
+
+        if start < end || end != 0 {
+            lines[n-1].tags.push(Tag {
+                start,
+                end,
+                label: labels.iter().position(|x| x.name == ent.label).unwrap(),
+            });
+        } else {
+            lines[n-1].tags.push(Tag {
+                start,
+                end: 0,
+                label: labels.iter().position(|x| x.name == ent.label).unwrap(),
+            });
+
+            lines[n].tags.push(Tag {
+                start: 0,
+                end,
+                label: labels.iter().position(|x| x.name == ent.label).unwrap(),
+            });
+        }
+    }
+
+    // terminal::disable_raw_mode()?;
     // dbg!(&lines);
-    // dbg!(&lines.chunks(window.columns as usize - 10).map(|x| x.iter().collect::<String>()).collect::<Vec<String>>());
     // todo!();
 
-    Ok((lines, Vec::new(), window))
+    Ok((lines, labels, window))
 }
 
 pub fn save_tan(app: &mut App) -> std::io::Result<()> {

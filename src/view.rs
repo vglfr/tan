@@ -73,6 +73,14 @@ pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     let end = std::cmp::min(app.window_height + app.offset_row, app.nlines) as usize;
 
     for line in &app.lines[start..end] {
+        // if line.is_wrapping {
+        //     queue!(
+        //         stdout,
+        //         cursor::MoveTo(0, line.row - app.offset_row),
+        //         style::Print("⤷"),
+        //     )?;
+        // }
+
         for chunk in chunk_line(line, app) {
             let text = &line.text[chunk.start.into()..chunk.end.into()];
 

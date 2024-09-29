@@ -6,8 +6,9 @@ use crossterm::{
     queue,
     style::{self, Color},
 };
+use rand::{rngs::ThreadRng, seq::SliceRandom};
 
-use crate::{color, helper::{self, App, Label}, view};
+use crate::{color, helper::{self, App, Label, COLORS}, view};
 
 struct Chunk {
     text: String,
@@ -20,9 +21,9 @@ pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     view::render_view(app, stdout)
 }
 
-pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    if app.labels.len() < 12 {
-        app.labels.push(Label { name: "new_label".to_owned(), color: Color::Red, is_active: false });
+pub fn handle_a(app: &mut App, stdout: &mut Stdout, rng: &mut ThreadRng) -> std::io::Result<()> {
+    if app.labels.len() < 24 {
+        app.labels.push(Label { name: "new_label".to_owned(), color: *COLORS.choose(rng).unwrap(), is_active: false });
         render_modal(app, stdout)
     } else {
         Ok(())
