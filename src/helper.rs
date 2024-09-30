@@ -18,6 +18,7 @@ pub struct App {
     // #[serde(skip)]
     // pub rng: ThreadRng,
     pub color_column: i8,
+    pub command: String,
     pub cursor_column: u16,
     pub cursor_row: u16,
     pub labels: Vec<Label>,
@@ -42,6 +43,7 @@ impl App {
         App {
             fname: fname.to_owned(),
             color_column: 0,
+            command: String::new(),
             cursor_column: 0,
             cursor_row: 0,
             nlines: lines.len() as u16,
@@ -105,6 +107,10 @@ impl App {
         self.mode = Mode::Color;
     }
 
+    pub fn set_command_mode(&mut self) {
+        self.mode = Mode::Command;
+    }
+
     pub fn set_modal_mode(&mut self) {
         self.mode = Mode::Modal;
     }
@@ -151,10 +157,12 @@ pub struct Line {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Mode {
     Color,
+    Command,
     Modal,
     Name,
     View,
     Visual,
+    Wrap,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

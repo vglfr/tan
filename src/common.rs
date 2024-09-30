@@ -1,8 +1,13 @@
-use std::io::Stdout;
+use std::io::{Stdout, Write};
 
-use crossterm::{cursor, execute};
+use crossterm::{cursor, execute, queue, style::{self, Color}};
 
-use crate::{helper::App, modal, view};
+use crate::{command, helper::{App, Mode}, modal, view};
+
+pub fn handle_colon(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.set_command_mode();
+    command::render_command(app, stdout)
+}
 
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     if app.cursor_column > 0 {
@@ -107,4 +112,47 @@ fn move_visual(app: &mut App) {
     if app.is_visual() && app.cursor_row + app.offset_row == app.visual_row {
         app.visual_end = app.cursor_column;
     }
+}
+
+pub fn render_statusline(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    let mode_color = match app.mode {
+        Mode::Color => Color::Yellow,
+        Mode::Command => Color::Red,
+        Mode::Modal => Color::Yellow,
+        Mode::Name => Color::Red,
+        Mode::View => Color::White,
+        Mode::Visual => Color::Blue,
+        Mode::Wrap => Color::White,
+    };
+
+    let status = format!(
+        "{}% {}:{}",
+        (app.cursor_row + app.offset_row) / app.nlines,
+        app.cursor_row + app.offset_row,
+        app.cursor_column + app.offset_column,
+    );
+    
+    queue!(
+        stdout,
+        cursor::MoveTo(0, app.window_height - 1),
+        style::SetBackgroundColor(mode_color),
+        style::Print("     "),
+    )?;
+
+    queue!(
+        stdout,
+        cursor::MoveTo(8, app.window_height - 1),
+        style::SetBackgroundColor(Color::Reset),
+        style::Print(&app.fname),
+    )?;
+
+    queue!(
+        stdout,
+        cursor::MoveTo(50, app.window_height - 1),
+        style::SetBackgroundColor(Color::Reset),
+        style::Print(status),
+    )?;
+
+    queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
+    stdout.flush()
 }

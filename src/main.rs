@@ -1,4 +1,5 @@
 pub mod color;
+pub mod command;
 pub mod common;
 pub mod helper;
 pub mod io;
@@ -11,7 +12,7 @@ use std::io::Write;
 
 use crossterm::{cursor, event::{read, Event, KeyCode, KeyModifiers}, queue, terminal};
 
-use helper::{FType, Mode};
+use crate::helper::{FType, Mode};
 
 fn main() -> std::io::Result<()> {
     let mut rng = rand::thread_rng();
@@ -35,16 +36,10 @@ fn main() -> std::io::Result<()> {
 
     queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
     view::render_view(&app, &mut stdout)?;
+    common::render_statusline(&mut app, &mut stdout)?;
 
     loop {
         let keycode = extract_keycode()?;
-
-        match keycode {
-            'q' => break,
-            'w' => io::save_tan(&mut app)?,
-            'D' => io::dump_debug(&app)?,
-            _ => (),
-        }
 
         match app.mode {
             Mode::Color =>
@@ -57,8 +52,22 @@ fn main() -> std::io::Result<()> {
 
                     _ => (),
                 },
+            Mode::Command =>
+                match keycode {
+                    // 'q' => break,
+                    // 'w' => io::save_tan(&mut app)?,
+                    // 'D' => io::dump_debug(&app)?,
+
+                    c@'!'..='~' => command::handle_key(c, &mut app, &mut stdout)?,
+                    '\x08' => command::handle_08(&mut app, &mut stdout)?,
+                    '\x0a' => command::handle_0a(&mut app, &mut stdout)?,
+                    '\x1b' => command::handle_1b(&mut app, &mut stdout)?,
+
+                    _ => (),
+                },
             Mode::Modal =>
                 match keycode {
+                    ':' => common::handle_colon(&mut app, &mut stdout)?,
                     'm' => modal::handle_m(&mut app, &mut stdout)?,
 
                     'a' => modal::handle_a(&mut app, &mut stdout, &mut rng)?,
@@ -71,7 +80,7 @@ fn main() -> std::io::Result<()> {
                     'c' => modal::handle_c(&mut app, &mut stdout)?,
 
                     'h' => modal::handle_h(&mut app, &mut stdout)?,
-                    // isolate tag (hide all tags except this one) - H
+                    // isolate tag (hide all tags except this one) -- toggle -- H
                     '\x0a' => modal::handle_0a(&mut app, &mut stdout)?,
                     _ => (),
                 },
@@ -80,14 +89,20 @@ fn main() -> std::io::Result<()> {
                     c@'!'..='~' => name::handle_key(c, &mut app, &mut stdout)?,
                     '\x08' => name::handle_08(&mut app, &mut stdout)?,
 
-                    '\x1b' => common::handle_1b(&mut app, &mut stdout)?,
                     '\x0a' => common::handle_1b(&mut app, &mut stdout)?,
+                    '\x1b' => common::handle_1b(&mut app, &mut stdout)?,
 
                     // 'c-u' => (),
+                    // 'c-w' => (),
+
                     _ => (),
                 },
             Mode::View =>
                 match keycode {
+                    ':' => common::handle_colon(&mut app, &mut stdout)?,
+                    'm' => common::handle_m(&mut app, &mut stdout)?,
+                    'v' => view::handle_v(&mut app),
+
                     'h' => common::handle_h(&mut app, &mut stdout)?,
                     'j' => common::handle_j(&mut app, &mut stdout)?,
                     'k' => common::handle_k(&mut app, &mut stdout)?,
@@ -109,32 +124,45 @@ fn main() -> std::io::Result<()> {
                     // '{' => { break; }
                     // '}' => { break; }
 
-                    'm' => common::handle_m(&mut app, &mut stdout)?,
-                    'v' => view::handle_v(&mut app),
-
                     't' => common::handle_t(&mut app, &mut stdout)?,
                     'u' => view::handle_u(&mut app, &mut stdout)?,
                     _ => (),
                 },
             Mode::Visual =>
                 match keycode {
+                    ':' => common::handle_colon(&mut app, &mut stdout)?,
+                    'm' => common::handle_m(&mut app, &mut stdout)?,
+                    'v' => visual::handle_v(&mut app),
+
                     'h' => common::handle_h(&mut app, &mut stdout)?,
                     'l' => common::handle_l(&mut app, &mut stdout)?,
 
-                    'm' => common::handle_m(&mut app, &mut stdout)?,
                     't' => common::handle_t(&mut app, &mut stdout)?,
-                    'v' => visual::handle_v(&mut app),
+                    _ => (),
+                },
+            Mode::Wrap =>
+                match keycode {
+                    ':' => common::handle_colon(&mut app, &mut stdout)?,
                     _ => (),
                 },
         }
 
     }
 
-    queue!(stdout, terminal::LeaveAlternateScreen)?;
-    queue!(stdout, cursor::Show)?;
+    // command::execute_exit(&mut stdout)
+    
 
-    terminal::disable_raw_mode()?;
-    stdout.flush()
+    // queue!(stdout, terminal::LeaveAlternateScreen)?;
+    // queue!(stdout, cursor::Show)?;
+
+    // terminal::disable_raw_mode()?;
+    // stdout.flush()
+}
+
+fn manage_render() {
+    // app.mode => statusline(),
+    // app.offset_column | app.offset_row => { view(), statusline() },
+    // app.cursor_column | app.cursor_row => { cursor(), statusline() }, 
 }
 
 fn extract_keycode() -> std::io::Result<char> {
