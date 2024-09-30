@@ -4,6 +4,68 @@ use crossterm::{cursor, execute, queue, style::{self, Color}};
 
 use crate::{command, helper::{App, Mode}, modal, view};
 
+#[allow(non_snake_case)]
+pub fn handle_E(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_column = app.lines[app.nlines as usize - 1].width - 1;
+    app.offset_column = 0; // todo
+
+    app.cursor_row = std::cmp::min(app.nlines - 2, app.window_height - 2);
+    app.offset_row = app.nlines - app.cursor_row - 1;
+
+    view::render_view(app, stdout)
+}
+
+#[allow(non_snake_case)]
+pub fn handle_H(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_row = 0;
+
+    manage_vertical_overflow(app);
+    view::render_view(app, stdout)
+}
+
+#[allow(non_snake_case)]
+pub fn handle_L(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_row = std::cmp::min(app.window_height - 2, app.nlines - 2);
+
+    manage_vertical_overflow(app);
+    view::render_view(app, stdout)
+}
+
+#[allow(non_snake_case)]
+pub fn handle_M(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_row = std::cmp::min(app.window_height / 2, app.nlines / 2);
+
+    manage_vertical_overflow(app);
+    view::render_view(app, stdout)
+}
+
+#[allow(non_snake_case)]
+pub fn handle_S(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.cursor_column = 0;
+    app.offset_column = 0;
+
+    app.cursor_row = 0;
+    app.offset_row = 0;
+
+    view::render_view(app, stdout)
+}
+
+pub fn handle_pg_down(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.offset_row = std::cmp::min(app.offset_row + app.cursor_row, app.nlines.saturating_sub(app.window_height - 1));
+    app.cursor_row = std::cmp::min(app.window_height - 2, app.nlines - 1);
+
+    manage_vertical_overflow(app);
+    view::render_view(app, stdout)
+}
+
+pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.offset_row = app.offset_row.saturating_sub(app.window_height - app.cursor_row - 2);
+    app.cursor_row = 0;
+
+    manage_vertical_overflow(app);
+    view::render_view(app, stdout)
+}
+
 pub fn handle_colon(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_command_mode();
     command::render_command(app, stdout)
@@ -33,7 +95,7 @@ pub fn handle_j(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         app.offset_row += 1;
     }
 
-    view::manage_vertical_overflow(app);
+    manage_vertical_overflow(app);
     view::render_view(app, stdout)
 }
 
@@ -44,7 +106,7 @@ pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         app.offset_row -= 1;
     }
 
-    view::manage_vertical_overflow(app);
+    manage_vertical_overflow(app);
     view::render_view(app, stdout)
 }
 
@@ -106,6 +168,15 @@ pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 fn manage_horizontal_overflow(app: &mut App) {
     app.cursor_column = std::cmp::min(app.current_linewidth() - 1, app.window_width - 1);
     app.offset_column = app.current_linewidth() - app.cursor_column - 1;
+}
+
+fn manage_vertical_overflow(app: &mut App) {
+    if app.current_linewidth() - 1 < app.offset_column {
+        app.cursor_column = 0;
+        app.offset_column = app.current_linewidth() - 1;
+    } else if app.current_linewidth() - 1 < app.offset_column + app.cursor_column {
+        app.cursor_column = app.current_linewidth() - app.offset_column - 1;
+    }
 }
 
 fn move_visual(app: &mut App) {

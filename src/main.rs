@@ -107,21 +107,21 @@ fn main() -> std::io::Result<()> {
                     'k' => common::handle_k(&mut app, &mut stdout)?,
                     'l' => common::handle_l(&mut app, &mut stdout)?,
 
-                    'H' => view::handle_H(&mut app, &mut stdout)?,
-                    'M' => view::handle_M(&mut app, &mut stdout)?,
-                    'L' => view::handle_L(&mut app, &mut stdout)?,
+                    'H' => common::handle_H(&mut app, &mut stdout)?,
+                    'M' => common::handle_M(&mut app, &mut stdout)?,
+                    'L' => common::handle_L(&mut app, &mut stdout)?,
 
-                    '\x11' => view::handle_pg_down(&mut app, &mut stdout)?,
-                    '\x12' => view::handle_pg_up(&mut app, &mut stdout)?,
+                    '\x11' => common::handle_pg_down(&mut app, &mut stdout)?,
+                    '\x12' => common::handle_pg_up(&mut app, &mut stdout)?,
 
                     's' => common::handle_s(&mut app, &mut stdout)?,
                     'e' => common::handle_e(&mut app, &mut stdout)?,
 
-                    // wb{} movement (later WB + g-seSE)
-                    // 'w' => { break; }
-                    // 'b' => { break; }
-                    // '{' => { break; }
-                    // '}' => { break; }
+                    'S' => common::handle_S(&mut app, &mut stdout)?,
+                    'E' => common::handle_E(&mut app, &mut stdout)?,
+
+                    // 'w' => common::handle_w(&mut app, &mut stdout)?,
+                    // 'b' => common::handle_b(&mut app, &mut stdout)?,
 
                     't' => common::handle_t(&mut app, &mut stdout)?,
                     'u' => view::handle_u(&mut app, &mut stdout)?,

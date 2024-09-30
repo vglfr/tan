@@ -57,10 +57,11 @@ Tasks:
 + fix modal resize
 + load spacy format
 + hide/unhide tags
++ proper command mode (:)
++ extra vertical movements (c-n,c-p)
 
-- wbSE movement
+~ wbSE movement
 - status line / hints (active tag -- filename | tags under cursor | command -- cursor posiiton)
-- proper command mode (:)
 - fix wrap line display
 - toggle wrap/unwrap mode
 - there's some blinking (too much redraw? even on non-redrawing hl moves)
@@ -76,7 +77,6 @@ Tasks:
 - helix-like select (when moving with wb)
 - screen resize
 - help screen
-~ extra vertical movements ({,},c-n,c-p}
 - use mouse to set cursor position
 - use mouse for selection
 - use mouse wheel for scrolling

@@ -14,46 +14,6 @@ struct Chunk {
     color: Color,
 }
 
-#[allow(non_snake_case)]
-pub fn handle_H(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_row = 0;
-
-    manage_vertical_overflow(app);
-    render_view(app, stdout)
-}
-
-#[allow(non_snake_case)]
-pub fn handle_M(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_row = std::cmp::min(app.window_height / 2, app.nlines / 2);
-
-    manage_vertical_overflow(app);
-    render_view(app, stdout)
-}
-
-#[allow(non_snake_case)]
-pub fn handle_L(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_row = std::cmp::min(app.window_height - 2, app.nlines - 2);
-
-    manage_vertical_overflow(app);
-    render_view(app, stdout)
-}
-
-pub fn handle_pg_down(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.offset_row = std::cmp::min(app.offset_row + app.cursor_row, app.nlines.saturating_sub(app.window_height - 1));
-    app.cursor_row = std::cmp::min(app.window_height - 2, app.nlines - 1);
-
-    manage_vertical_overflow(app);
-    render_view(app, stdout)
-}
-
-pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.offset_row = app.offset_row.saturating_sub(app.window_height - app.cursor_row - 2);
-    app.cursor_row = 0;
-
-    manage_vertical_overflow(app);
-    render_view(app, stdout)
-}
-
 pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.untag();
     render_view(app, stdout)
@@ -137,13 +97,4 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     }).collect();
 
     chunks
-}
-
-pub fn manage_vertical_overflow(app: &mut App) {
-    if app.current_linewidth() - 1 < app.offset_column {
-        app.cursor_column = 0;
-        app.offset_column = app.current_linewidth() - 1;
-    } else if app.current_linewidth() - 1 < app.offset_column + app.cursor_column {
-        app.cursor_column = app.current_linewidth() - app.offset_column - 1;
-    }
 }
