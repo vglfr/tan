@@ -32,22 +32,22 @@ pub fn handle_M(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 #[allow(non_snake_case)]
 pub fn handle_L(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_row = std::cmp::min(app.window_height - 1, app.nlines - 1);
+    app.cursor_row = std::cmp::min(app.window_height - 2, app.nlines - 2);
 
     manage_vertical_overflow(app);
     render_view(app, stdout)
 }
 
 pub fn handle_pg_down(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.offset_row = std::cmp::min(app.offset_row + app.cursor_row, app.nlines.saturating_sub(app.window_height));
-    app.cursor_row = std::cmp::min(app.window_height - 1, app.nlines - 1);
+    app.offset_row = std::cmp::min(app.offset_row + app.cursor_row, app.nlines.saturating_sub(app.window_height - 1));
+    app.cursor_row = std::cmp::min(app.window_height - 2, app.nlines - 1);
 
     manage_vertical_overflow(app);
     render_view(app, stdout)
 }
 
 pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.offset_row = app.offset_row.saturating_sub(app.window_height - app.cursor_row - 1);
+    app.offset_row = app.offset_row.saturating_sub(app.window_height - app.cursor_row - 2);
     app.cursor_row = 0;
 
     manage_vertical_overflow(app);
@@ -70,7 +70,7 @@ pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     queue!(stdout, terminal::Clear(ClearType::All))?;
 
     let start = app.offset_row as usize;
-    let end = std::cmp::min(app.window_height + app.offset_row, app.nlines) as usize;
+    let end = std::cmp::min(app.window_height + app.offset_row - 1, app.nlines) as usize;
 
     for line in &app.lines[start..end] {
         // if line.is_wrapping {

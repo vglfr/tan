@@ -22,7 +22,7 @@ pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_j(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    if app.cursor_row + app.offset_row < app.nlines - 1 && app.cursor_row < app.window_height - 1 {
+    if app.cursor_row + app.offset_row < app.nlines - 1 && app.cursor_row < app.window_height - 2 {
         app.cursor_row += 1;
     } else if app.cursor_row + app.offset_row < app.nlines - 1 {
         app.offset_row += 1;
@@ -48,7 +48,7 @@ pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         app.cursor_column += 1;
     } else if app.cursor_column + app.offset_column < app.current_linewidth() - 1 {
         app.offset_column += 1;
-    } else if app.cursor_row < app.window_height - 1 {
+    } else if app.cursor_row < app.window_height - 2 {
         app.offset_column = 0;
         app.cursor_column = 0;
         app.cursor_row += 1;
