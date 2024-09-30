@@ -2,7 +2,7 @@ use std::io::{Stdout, Write};
 
 use crossterm::{cursor, queue, style::{self, Color}, terminal};
 
-use crate::{common, helper::App};
+use crate::{common, helper::App, io};
 
 pub fn handle_key(c: char, app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.command.push(c);
@@ -20,13 +20,12 @@ pub fn handle_08(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     match app.command.as_str() {
-        "q" => execute_exit(stdout),
-        "quit" => execute_exit(stdout),
-        // "w" => execute_write(),
-        // "write" => execute_write(),
+        "q" | "quit" => execute_exit(stdout),
+        "w" | "write" => execute_write(app, stdout),
+        "d" | "debug" => execute_debug(app, stdout),
+
         _ => Ok(()),
     }
-    // Ok(())
 }
 
 pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -35,13 +34,6 @@ pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    // queue!(
-    //     stdout,
-    //     cursor::MoveTo(50, app.window_height - 1),
-    //     style::SetBackgroundColor(Color::Reset),
-    //     style::Print(format!("{}% {}:{}", app.cursor_column, app.cursor_row, app.cursor_column)),
-    // )?;
-
     queue!(
         stdout,
         cursor::MoveTo(0, app.window_height - 1),
@@ -63,7 +55,6 @@ pub fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()>
         style::Print(&app.command),
     )?;
 
-    // queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
     stdout.flush()
 }
 
@@ -78,6 +69,18 @@ fn execute_exit(stdout: &mut Stdout) -> std::io::Result<()> {
     Ok(())
 }
 
-fn execute_write() {
-    std::process::exit(1)
+fn execute_write(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.command.clear();
+    app.set_view_mode();
+
+    io::save_tan(app)?;
+    common::render_statusline(app, stdout)
+}
+
+fn execute_debug(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.command.clear();
+    app.set_view_mode();
+
+    io::dump_debug(app)?;
+    common::render_statusline(app, stdout)
 }

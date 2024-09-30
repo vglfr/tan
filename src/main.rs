@@ -8,8 +8,6 @@ pub mod name;
 pub mod view;
 pub mod visual;
 
-use std::io::Write;
-
 use crossterm::{cursor, event::{read, Event, KeyCode, KeyModifiers}, queue, terminal};
 
 use crate::helper::{FType, Mode};
@@ -32,9 +30,10 @@ fn main() -> std::io::Result<()> {
     terminal::enable_raw_mode()?;
 
     let mut app = io::load_file(&fname, ftype, &mut rng)?;
-    queue!(stdout, terminal::EnterAlternateScreen)?;
 
+    queue!(stdout, terminal::EnterAlternateScreen)?;
     queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
+
     view::render_view(&app, &mut stdout)?;
     common::render_statusline(&mut app, &mut stdout)?;
 
@@ -54,14 +53,14 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Command =>
                 match keycode {
-                    // 'q' => break,
-                    // 'w' => io::save_tan(&mut app)?,
-                    // 'D' => io::dump_debug(&app)?,
-
                     c@'!'..='~' => command::handle_key(c, &mut app, &mut stdout)?,
                     '\x08' => command::handle_08(&mut app, &mut stdout)?,
+
                     '\x0a' => command::handle_0a(&mut app, &mut stdout)?,
                     '\x1b' => command::handle_1b(&mut app, &mut stdout)?,
+
+                    // 'c-u' => (),
+                    // 'c-w' => (),
 
                     _ => (),
                 },
@@ -148,22 +147,13 @@ fn main() -> std::io::Result<()> {
         }
 
     }
-
-    // command::execute_exit(&mut stdout)
-    
-
-    // queue!(stdout, terminal::LeaveAlternateScreen)?;
-    // queue!(stdout, cursor::Show)?;
-
-    // terminal::disable_raw_mode()?;
-    // stdout.flush()
 }
 
-fn manage_render() {
-    // app.mode => statusline(),
-    // app.offset_column | app.offset_row => { view(), statusline() },
-    // app.cursor_column | app.cursor_row => { cursor(), statusline() }, 
-}
+// fn manage_render() {
+//     app.mode => statusline(),
+//     app.offset_column | app.offset_row => { view(), statusline() },
+//     app.cursor_column | app.cursor_row => { cursor(), statusline() }, 
+// }
 
 fn extract_keycode() -> std::io::Result<char> {
     match read()? {
