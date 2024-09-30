@@ -8,28 +8,26 @@ pub mod name;
 pub mod view;
 pub mod visual;
 
+use clap::Parser;
 use crossterm::{cursor, event::{read, Event, KeyCode, KeyModifiers}, queue, terminal};
 
 use crate::helper::{FType, Mode};
 
+#[derive(Parser, Debug)]
+#[command(version)]
+struct Argv {
+    #[clap(default_value = "data/test.json.tan")]
+    name: String,
+    #[clap(short, long, value_enum, default_value_t = FType::Tan)]
+    format: FType,
+}
+
 fn main() -> std::io::Result<()> {
-    let mut rng = rand::thread_rng();
-    // let fname = std::env::args().nth(1).unwrap_or("data/test.txt".to_string());
-    // let ftype = FType::Raw;
-
-    let fname = std::env::args().nth(1).unwrap_or("data/test.json".to_string());
-    let ftype = FType::Spacy;
-
-    // let fname = std::env::args().nth(1).unwrap_or("data/test.txt.tan".to_string());
-    // let ftype = FType::Tan;
-
-    // let fname = std::env::args().nth(1).unwrap_or("data/test.json.tan".to_string());
-    // let ftype = FType::Tan;
+    let argv = Argv::parse();
+    let mut app = io::load_file(&argv)?;
 
     let mut stdout = std::io::stdout();
     terminal::enable_raw_mode()?;
-
-    let mut app = io::load_file(&fname, ftype, &mut rng)?;
 
     queue!(stdout, terminal::EnterAlternateScreen)?;
     queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
@@ -69,7 +67,7 @@ fn main() -> std::io::Result<()> {
                     ':' => common::handle_colon(&mut app, &mut stdout)?,
                     'm' => modal::handle_m(&mut app, &mut stdout)?,
 
-                    'a' => modal::handle_a(&mut app, &mut stdout, &mut rng)?,
+                    'a' => modal::handle_a(&mut app, &mut stdout)?,
                     'd' => modal::handle_d(&mut app, &mut stdout)?,
 
                     'j' => modal::handle_j(&mut app, &mut stdout)?,

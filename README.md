@@ -64,7 +64,7 @@ Tasks:
 - status line / hints (active tag -- filename | tags under cursor | command -- cursor posiiton)
 - fix wrap line display
 - toggle wrap/unwrap mode
-- there's some blinking (too much redraw? even on non-redrawing hl moves)
+- fix blinking (too much redraw? even on non-redrawing hl moves)
 - save spacy format (for QA)
 
 - overlapping tags
@@ -75,7 +75,7 @@ Tasks:
 - display tag hotkeys in modal
 - multiline tagging
 - helix-like select (when moving with wb)
-- screen resize
+- terminal resize
 - help screen
 - use mouse to set cursor position
 - use mouse for selection

@@ -8,6 +8,7 @@ use rand::{rngs::ThreadRng, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
 
 use crate::helper::{App, FType, Label, Line, Mode, Tag, COLORS};
+use crate::Argv;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Spacy {
@@ -29,11 +30,11 @@ struct Ent {
     start: u64,
 }
 
-pub fn load_file(fname: &str, ftype: FType, rng: &mut ThreadRng) -> std::io::Result<App> {
-    match ftype {
-        FType::Raw => load_raw(fname),
-        FType::Spacy => load_spacy(fname, rng),
-        FType::Tan => load_tan(fname),
+pub fn load_file(argv: &Argv) -> std::io::Result<App> {
+    match argv.format {
+        FType::Raw => load_raw(&argv.name),
+        FType::Spacy => load_spacy(&argv.name),
+        FType::Tan => load_tan(&argv.name),
     }
 
     // prevent from opening non-utf8
@@ -46,12 +47,15 @@ fn load_raw(fname: &str) -> std::io::Result<App> {
     ];
 
     let window = terminal::window_size().unwrap();
-    Ok(App::new(fname, lines, labels, window))
+    let rng = rand::thread_rng();
+    
+    Ok(App::new(fname, lines, labels, window, rng))
 }
 
-fn load_spacy(fname: &str, rng: &mut ThreadRng) -> std::io::Result<App> {
-    let (lines, labels, window) = read_slines(fname, rng)?;
-    Ok(App::new(fname, lines, labels, window))
+fn load_spacy(fname: &str) -> std::io::Result<App> {
+    let mut rng = rand::thread_rng();
+    let (lines, labels, window) = read_slines(fname, &mut rng)?;
+    Ok(App::new(fname, lines, labels, window, rng))
 }
 
 fn load_tan(fname: &str) -> std::io::Result<App> {

@@ -6,7 +6,7 @@ use crossterm::{
     queue,
     style::{self, Color},
 };
-use rand::{rngs::ThreadRng, seq::SliceRandom};
+use rand::seq::SliceRandom;
 
 use crate::{color, helper::{self, App, Label, COLORS}, view};
 
@@ -21,11 +21,11 @@ pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     view::render_view(app, stdout)
 }
 
-pub fn handle_a(app: &mut App, stdout: &mut Stdout, rng: &mut ThreadRng) -> std::io::Result<()> {
+pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     if app.labels.len() < 24 {
         let label = Label {
             name: "new_label".to_owned(),
-            color: *COLORS.choose(rng).unwrap(),
+            color: *COLORS.choose(&mut app.rng).unwrap(),
             is_active: false,
             is_visible: true,
         };

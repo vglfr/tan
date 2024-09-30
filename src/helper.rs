@@ -1,4 +1,6 @@
+use clap::ValueEnum;
 use crossterm::{style::Color, terminal::WindowSize};
+use rand::rngs::ThreadRng;
 use serde::{Deserialize, Serialize};
 
 pub const COLORS: [Color; 7] = [
@@ -14,9 +16,6 @@ pub const COLORS: [Color; 7] = [
 #[derive(Debug, Deserialize, Serialize)]
 pub struct App {
     pub fname: String,
-    // #[allow(dead_code)]
-    // #[serde(skip)]
-    // pub rng: ThreadRng,
     pub color_column: i8,
     pub command: String,
     pub cursor_column: u16,
@@ -31,6 +30,8 @@ pub struct App {
     pub nlines: u16,
     pub offset_column: u16,
     pub offset_row: u16,
+    #[serde(skip)]
+    pub rng: ThreadRng,
     pub visual_row: u16,
     pub visual_start: u16,
     pub visual_end: u16,
@@ -39,7 +40,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(fname: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize) -> App {
+    pub fn new(fname: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize, rng: ThreadRng) -> App {
         App {
             fname: fname.to_owned(),
             color_column: 0,
@@ -56,6 +57,7 @@ impl App {
             mode: Mode::View,
             offset_column: 0,
             offset_row: 0,
+            rng,
             visual_row: 0,
             visual_start: 0,
             visual_end: 0,
@@ -128,7 +130,7 @@ impl App {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum FType {
     Raw,
     Spacy,
