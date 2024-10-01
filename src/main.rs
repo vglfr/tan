@@ -8,12 +8,14 @@ pub mod name;
 pub mod normal;
 pub mod visual;
 
+use std::io::Stdout;
+
 use clap::Parser;
 use crossterm::{cursor, event::{read, Event, KeyCode, KeyModifiers}, queue, terminal};
 
-use crate::helper::{FType, Mode};
+use helper::{App, FType, Mode};
 
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 #[command(version)]
 struct Argv {
     #[clap(default_value = "data/test.json")]
@@ -27,13 +29,7 @@ fn main() -> std::io::Result<()> {
     let mut app = io::load_file(&argv)?;
 
     let mut stdout = std::io::stdout();
-    terminal::enable_raw_mode()?;
-
-    queue!(stdout, terminal::EnterAlternateScreen)?;
-    queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
-
-    normal::render_normal(&app, &mut stdout)?;
-    common::render_statusline(&mut app, &mut stdout)?;
+    render_initial(&mut app, &mut stdout)?;
 
     loop {
         let keycode = extract_keycode()?;
@@ -140,6 +136,16 @@ fn main() -> std::io::Result<()> {
         }
 
     }
+}
+
+fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    terminal::enable_raw_mode()?;
+
+    queue!(stdout, terminal::EnterAlternateScreen)?;
+    queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
+
+    normal::render_normal(app, stdout)?;
+    common::render_statusline(app, stdout)
 }
 
 // fn manage_render() {

@@ -20,7 +20,22 @@ could be added, removed, extended, merged, and visualized.
 
 Options:
 
-- `-f FORMAT`, `--format FORMAT` [default: spacy] [possible values: raw, spacy, tan]
+- `-f FORMAT`, `--format FORMAT` [default: raw] [possible values: raw, spacy, tan]
+
+#### Formats
+
+For now only SpaCy format is parsed.
+
+```python
+import json
+import spacy
+
+nlp = spacy.load("")
+doc = nlp("")
+
+with open("", "wb") as f:
+    f.write(doc.to_json())
+```
 
 #### Modes
 
