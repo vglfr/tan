@@ -72,7 +72,11 @@ impl App {
         (a[0], a[1])
     }
 
-    pub fn current_linewidth(&mut self) -> u16 {
+    pub fn get_current_line(&mut self) -> &Line {
+        &self.lines[(self.cursor_row + self.offset_row) as usize]
+    }
+
+    pub fn get_current_line_width(&mut self) -> u16 {
         self.lines[(self.cursor_row + self.offset_row) as usize].width
     }
 

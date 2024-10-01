@@ -59,24 +59,23 @@ Tasks:
 + hide/unhide tags
 + proper command mode (:)
 + extra vertical movements (c-n,c-p)
++ clap
++ wbSE movement
++ status line / hints (active tag -- filename | tags under cursor | command -- cursor posiiton)
 
-~ wbSE movement
-- status line / hints (active tag -- filename | tags under cursor | command -- cursor posiiton)
 - fix wrap line display
 - toggle wrap/unwrap mode
 - fix blinking (too much redraw? even on non-redrawing hl moves)
-- save spacy format (for QA)
-
+- multiline tagging
 - overlapping tags
-- virtual column
+
+- help screen
+- save spacy format (for QA)
 - error handling
 - debug logging
-- clap
-- display tag hotkeys in modal
-- multiline tagging
-- helix-like select (when moving with wb)
 - terminal resize
-- help screen
 - use mouse to set cursor position
 - use mouse for selection
 - use mouse wheel for scrolling
+- virtual column
+- helix-like select (when moving with wb)

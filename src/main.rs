@@ -16,9 +16,9 @@ use crate::helper::{FType, Mode};
 #[derive(Parser, Debug)]
 #[command(version)]
 struct Argv {
-    #[clap(default_value = "data/test.json.tan")]
+    #[clap(default_value = "data/test.json")]
     name: String,
-    #[clap(short, long, value_enum, default_value_t = FType::Tan)]
+    #[clap(short, long, value_enum, default_value_t = FType::Spacy)]
     format: FType,
 }
 
@@ -118,8 +118,8 @@ fn main() -> std::io::Result<()> {
                     'S' => common::handle_S(&mut app, &mut stdout)?,
                     'E' => common::handle_E(&mut app, &mut stdout)?,
 
-                    // 'w' => common::handle_w(&mut app, &mut stdout)?,
-                    // 'b' => common::handle_b(&mut app, &mut stdout)?,
+                    'w' => common::handle_w(&mut app, &mut stdout)?,
+                    'b' => common::handle_b(&mut app, &mut stdout)?,
 
                     't' => common::handle_t(&mut app, &mut stdout)?,
                     'u' => view::handle_u(&mut app, &mut stdout)?,
