@@ -8,7 +8,7 @@ use crossterm::{
 };
 use rand::seq::SliceRandom;
 
-use crate::{color, helper::{self, App, Label, COLORS}, view};
+use crate::{color, helper::{self, App, Label, COLORS}, normal};
 
 struct Chunk {
     text: String,
@@ -16,9 +16,9 @@ struct Chunk {
 }
 
 pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.set_view_mode();
+    app.set_normal_mode();
     execute!(stdout, cursor::Show)?;
-    view::render_view(app, stdout)
+    normal::render_normal(app, stdout)
 }
 
 pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -38,7 +38,7 @@ pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_d(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    // handle view
+    // handle normal
     if app.labels.len() > 1 {
         app.labels.remove(app.modal_row as usize);
         app.modal_row = (app.modal_row - 1).rem_euclid(app.labels.len() as i8);
@@ -77,7 +77,7 @@ pub fn handle_c(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.labels[app.modal_row as usize].is_visible ^= true;
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_modal(app, stdout)
 }
 

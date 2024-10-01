@@ -5,7 +5,7 @@ pub mod helper;
 pub mod io;
 pub mod modal;
 pub mod name;
-pub mod view;
+pub mod normal;
 pub mod visual;
 
 use clap::Parser;
@@ -32,7 +32,7 @@ fn main() -> std::io::Result<()> {
     queue!(stdout, terminal::EnterAlternateScreen)?;
     queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
 
-    view::render_view(&app, &mut stdout)?;
+    normal::render_normal(&app, &mut stdout)?;
     common::render_statusline(&mut app, &mut stdout)?;
 
     loop {
@@ -94,11 +94,11 @@ fn main() -> std::io::Result<()> {
 
                     _ => (),
                 },
-            Mode::View =>
+            Mode::Normal =>
                 match keycode {
                     ':' => common::handle_colon(&mut app, &mut stdout)?,
                     'm' => common::handle_m(&mut app, &mut stdout)?,
-                    'v' => view::handle_v(&mut app),
+                    'v' => normal::handle_v(&mut app),
 
                     'h' => common::handle_h(&mut app, &mut stdout)?,
                     'j' => common::handle_j(&mut app, &mut stdout)?,
@@ -122,7 +122,7 @@ fn main() -> std::io::Result<()> {
                     'b' => common::handle_b(&mut app, &mut stdout)?,
 
                     't' => common::handle_t(&mut app, &mut stdout)?,
-                    'u' => view::handle_u(&mut app, &mut stdout)?,
+                    'u' => normal::handle_u(&mut app, &mut stdout)?,
                     _ => (),
                 },
             Mode::Visual =>
@@ -135,11 +135,6 @@ fn main() -> std::io::Result<()> {
                     'l' => common::handle_l(&mut app, &mut stdout)?,
 
                     't' => common::handle_t(&mut app, &mut stdout)?,
-                    _ => (),
-                },
-            Mode::Wrap =>
-                match keycode {
-                    ':' => common::handle_colon(&mut app, &mut stdout)?,
                     _ => (),
                 },
         }

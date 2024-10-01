@@ -7,7 +7,7 @@ use itertools::Itertools;
 use rand::{rngs::ThreadRng, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
 
-use crate::helper::{App, FType, Label, Line, Mode, Tag, COLORS};
+use crate::helper::{App, FType, Label, Line, Tag, COLORS};
 use crate::Argv;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -170,7 +170,7 @@ fn read_slines(fname: &str, rng: &mut ThreadRng) -> std::io::Result<(Vec<Line>, 
 
 pub fn save_tan(app: &mut App) -> std::io::Result<()> {
     let mode = app.mode.clone();
-    app.mode = Mode::View;
+    app.set_normal_mode();
 
     if !app.fname.ends_with(".tan") { app.fname.push_str(".tan") };
     let mut f = File::create(&app.fname)?;

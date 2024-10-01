@@ -2,7 +2,7 @@ use std::io::{Stdout, Write};
 
 use crossterm::{cursor, execute, queue, style::{self, Color}};
 
-use crate::{command, helper::{App, Mode}, modal, view};
+use crate::{command, helper::{App, Mode}, modal, normal};
 
 #[allow(non_snake_case)]
 pub fn handle_E(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -12,7 +12,7 @@ pub fn handle_E(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = std::cmp::min(app.nlines - 2, app.window_height - 2);
     app.offset_row = app.nlines - app.cursor_row - 1;
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -21,7 +21,7 @@ pub fn handle_H(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = 0;
     manage_vertical_overflow(app);
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -30,7 +30,7 @@ pub fn handle_L(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = std::cmp::min(app.window_height - 2, app.nlines - 2);
     manage_vertical_overflow(app);
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -39,7 +39,7 @@ pub fn handle_M(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = std::cmp::min(app.window_height / 2, app.nlines / 2);
     manage_vertical_overflow(app);
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -51,7 +51,7 @@ pub fn handle_S(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = 0;
     app.offset_row = 0;
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -61,7 +61,7 @@ pub fn handle_pg_down(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()>
 
     manage_vertical_overflow(app);
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -71,7 +71,7 @@ pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
     manage_vertical_overflow(app);
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -94,7 +94,7 @@ pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 
     move_visual(app);
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -106,7 +106,7 @@ pub fn handle_j(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 
     manage_vertical_overflow(app);
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -118,7 +118,7 @@ pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 
     manage_vertical_overflow(app);
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -138,7 +138,7 @@ pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 
     move_visual(app);
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -156,7 +156,7 @@ pub fn handle_w(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         app.cursor_column += offset as u16;
 
         move_visual(app);
-        view::render_view(app, stdout)?;
+        normal::render_normal(app, stdout)?;
         render_statusline(app, stdout)
     } else {
         Ok(())
@@ -179,7 +179,7 @@ pub fn handle_b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         app.cursor_column -= offset as u16;
 
         move_visual(app);
-        view::render_view(app, stdout)?;
+        normal::render_normal(app, stdout)?;
         render_statusline(app, stdout)
     } else {
         Ok(())
@@ -190,13 +190,13 @@ pub fn handle_s(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_column = 0;
     app.offset_column = 0;
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
 pub fn handle_e(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     manage_horizontal_overflow(app);
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -208,12 +208,12 @@ pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 pub fn handle_t(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.tag();
-    app.set_view_mode();
+    app.set_normal_mode();
 
     app.visual_start = app.cursor_column;
     app.visual_end = app.visual_start;
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
 }
 
@@ -221,7 +221,7 @@ pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_modal_mode();
     execute!(stdout, cursor::Hide)?;
 
-    view::render_view(app, stdout)?;
+    normal::render_normal(app, stdout)?;
     modal::render_modal(app, stdout)
 }
 
@@ -251,9 +251,8 @@ pub fn render_statusline(app: &mut App, stdout: &mut Stdout) -> std::io::Result<
         Mode::Command => Color::Red,
         Mode::Modal => Color::Yellow,
         Mode::Name => Color::Red,
-        Mode::View => Color::White,
+        Mode::Normal => Color::White,
         Mode::Visual => Color::Blue,
-        Mode::Wrap => Color::White,
     };
 
     let status = format!(

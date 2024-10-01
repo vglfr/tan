@@ -29,7 +29,7 @@ pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.set_view_mode();
+    app.set_normal_mode();
     common::render_statusline(app, stdout)
 }
 
@@ -71,7 +71,7 @@ fn execute_exit(stdout: &mut Stdout) -> std::io::Result<()> {
 
 fn execute_write(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.command.clear();
-    app.set_view_mode();
+    app.set_normal_mode();
 
     io::save_tan(app)?;
     common::render_statusline(app, stdout)
@@ -79,7 +79,7 @@ fn execute_write(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 fn execute_debug(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.command.clear();
-    app.set_view_mode();
+    app.set_normal_mode();
 
     io::dump_debug(app)?;
     common::render_statusline(app, stdout)

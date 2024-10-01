@@ -54,7 +54,7 @@ impl App {
             modal_row: 0,
             modal_start_column: 0,
             modal_start_row: 0,
-            mode: Mode::View,
+            mode: Mode::Normal,
             offset_column: 0,
             offset_row: 0,
             rng,
@@ -101,8 +101,8 @@ impl App {
         self.mode == Mode::Modal
     }
 
-    pub fn is_view(&self) -> bool {
-        self.mode == Mode::View
+    pub fn is_normal(&self) -> bool {
+        self.mode == Mode::Normal
     }
 
     pub fn is_visual(&self) -> bool {
@@ -125,8 +125,8 @@ impl App {
         self.mode = Mode::Name;
     }
 
-    pub fn set_view_mode(&mut self) {
-        self.mode = Mode::View;
+    pub fn set_normal_mode(&mut self) {
+        self.mode = Mode::Normal;
     }
 
     pub fn set_visual_mode(&mut self) {
@@ -166,9 +166,8 @@ pub enum Mode {
     Command,
     Modal,
     Name,
-    View,
+    Normal,
     Visual,
-    Wrap,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

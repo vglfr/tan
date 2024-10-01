@@ -15,6 +15,9 @@ One paragraph detalization.
 
 #### Keybindings
 
+`normal` mode:
+- 
+
 Not just an annotation tool. General annotation tool.
 Something which takes input text, keeps it unchanged,
 and allows any number of overlays over it. Overlays

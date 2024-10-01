@@ -16,7 +16,7 @@ struct Chunk {
 
 pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.untag();
-    render_view(app, stdout)
+    render_normal(app, stdout)
 }
 
 pub fn handle_v(app: &mut App) {
@@ -26,7 +26,7 @@ pub fn handle_v(app: &mut App) {
     app.visual_end = app.cursor_column;
 }
 
-pub fn render_view(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn render_normal(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     queue!(stdout, terminal::Clear(ClearType::All))?;
 
     let start = app.offset_row as usize;
