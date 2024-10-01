@@ -12,7 +12,7 @@ could be added, removed, extended, merged, and visualized.
 #### Installation
 
 - `nix shell vglfr/tan#default` with Nix
-- `cargo install tan` with crates.io
+- `cargo install tan-annotation-tool` with crates.io
 
 #### Usage
 
@@ -25,83 +25,63 @@ Options:
 #### Modes
 
 | mode | description |
-| ---- | ------- |
+| -- | -- |
 | `normal` | text preview and navigation |
-| `command` |  |
-| `visual` | .. |
-| `x` | .. |
-| `x` | .. |
-| `x` | .. |
+| `visual` | visual selection |
+| `command` | command prompt |
+| `tag` | tag modal |
 
 #### Keybindings
 
-`normal` mode:
+###### Modes
 
 | key | command |
-| --- | ------- |
-| `x` | .. |
-| `x` | .. |
-| `x` | .. |
-| `x` | .. |
-| `x` | .. |
-| `x` | .. |
-| `x` | .. |
-| `x` | .. |
+| -- | -- |
+| `:` | command mode |
+| `m` | tag mode |
+| `v` | visual mode |
 
-`normal` mode:
+###### Cursor movements
+
+| key | command |
+| -- | -- |
+| `h` | left |
+| `j` | down |
+| `k` | up |
+| `l` | right |
+| `H` | top of the screen |
+| `M` | middle of the screen |
+| `L` | bottom of the screen |
+| `C-n` | screen down |
+| `C-p` | screen up |
+| `s` | start of the line |
+| `e` | end of the line |
+| `S` | start of the file |
+| `E` | end of the file |
+| `w` | word ahead |
+| `b` | word behind |
+
+###### Normal mode
+
+| key | command |
+| -- | -- |
+| `t` | tag selection with active label |
+| `u` | untag selection |
+
+###### Tag mode
+
+| key | command |
+| -- | -- |
+| `a` | add tag |
+| `d` | delete tag |
+| `i` | edit tag name |
+| `c` | edit tag color |
+| `h` | toggle tag visibility |
+| `Return` | activate tag |
 
 #### Commands
 
-     command | description             
-          -- | --                      
-`q`, `quit`  | quit                    
-`w`, `write` | write file at tan format
-
-TUI consists of:
-- rendering and scrolling of an underlying text
-- moving cursor and selection
-- rendering of annotations
-- annotation register
-- statistics, help, misc
-
-Tasks:
-+ display static text in TUI
-+ open file from CLI arg and display it
-+ add cursor to TUI (/ and show it in different color)
-+ navigate cursor with hjkl
-+ wrap around newline with hjkl
-+ tag / untag selection with hotkey (t / u ?)
-+ display tag information in the bottom
-+ save tagged file to disk
-+ vertical scroll
-+ horizontal wrap/scroll
-+ restore hl wrapping moves
-+ restore jk wrapping moves
-+ fix visual selection
-+ active tag
-+ fix modal resize
-+ load spacy format
-+ hide/unhide tags
-+ proper command mode (:)
-+ extra vertical movements (c-n,c-p)
-+ clap
-+ wbSE movement
-+ status line / hints (active tag -- filename | tags under cursor | command -- cursor posiiton)
-
-- fix wrap line display
-- toggle wrap/unwrap mode
-- fix blinking (too much redraw? even on non-redrawing hl moves)
-- multiline tagging
-- overlapping tags
-
-- help screen
-- save spacy format (for QA)
-- error handling
-- debug logging
-- terminal resize
-- use mouse to set cursor position
-- use mouse for selection
-- use mouse wheel for scrolling
-- virtual column
-- helix-like select (when moving with wb)
-- docx export
+| command | description |
+| -- | -- |      
+| `q`, `quit` | quit |
+| `w`, `write` | write file at tan format |
