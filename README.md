@@ -1,39 +1,61 @@
 ## TAN - Tiny Annotation Tool
 
-One phrase pitch.
+Simple vim-like tool for NER annotation.
 
 15-second usage gif
-
-One paragraph detalization.
-
-#### Installation
-
-- nix flake
-- crates.io
-
-#### Command line options
-
-#### Keybindings
-
-`normal` mode:
-- 
 
 Not just an annotation tool. General annotation tool.
 Something which takes input text, keeps it unchanged,
 and allows any number of overlays over it. Overlays
 could be added, removed, extended, merged, and visualized.
-Annotation results could be stored in a centralized database (bad)
-or in the same file (thus creating a docx-like container).
-Second option is certainly more appealing. It better be
-a custom line-based rich format (.tan) with a possibility
-for docx export.
 
-Each annotation has an id, bounds (exactly two of them,
-lower and upper, which could span several lines), label, and color.
-Annotations could overlap.
+#### Installation
 
-There is a centralized register of all available annotations
-with a CRUD over them.
+- `nix shell vglfr/tan#default` with Nix
+- `cargo install tan` with crates.io
+
+#### Usage
+
+`tan [OPTIONS] [NAME]`
+
+Options:
+
+- `-f FORMAT`, `--format FORMAT` [default: spacy] [possible values: raw, spacy, tan]
+
+#### Modes
+
+| mode | description |
+| ---- | ------- |
+| `normal` | text preview and navigation |
+| `command` |  |
+| `visual` | .. |
+| `x` | .. |
+| `x` | .. |
+| `x` | .. |
+
+#### Keybindings
+
+`normal` mode:
+
+| key | command |
+| --- | ------- |
+| `x` | .. |
+| `x` | .. |
+| `x` | .. |
+| `x` | .. |
+| `x` | .. |
+| `x` | .. |
+| `x` | .. |
+| `x` | .. |
+
+`normal` mode:
+
+#### Commands
+
+     command | description             
+          -- | --                      
+`q`, `quit`  | quit                    
+`w`, `write` | write file at tan format
 
 TUI consists of:
 - rendering and scrolling of an underlying text
@@ -82,3 +104,4 @@ Tasks:
 - use mouse wheel for scrolling
 - virtual column
 - helix-like select (when moving with wb)
+- docx export
