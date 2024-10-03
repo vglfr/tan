@@ -23,8 +23,8 @@ Tasks:
 + status line / hints (active tag -- filename | tags under cursor | command -- cursor posiiton)
 + help screen
 
+- deprecate overflow mode
 - fix wrap line display
-- toggle wrap/unwrap mode
 - fix blinking (too much redraw? even on non-redrawing hl moves)
 - multiline tagging
 - overlapping tags
@@ -39,3 +39,5 @@ Tasks:
 - virtual column
 - helix-like select (when moving with wb)
 - docx export
+- redux overflow mode
+- toggle wrap/overflow mode

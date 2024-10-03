@@ -40,8 +40,8 @@ pub fn load_file(argv: &Argv) -> std::io::Result<App> {
     // prevent from opening non-utf8
 }
 
-fn load_raw(fname: &str) -> std::io::Result<App> {
-    let lines = read_rlines(fname)?;
+fn load_raw(filename: &str) -> std::io::Result<App> {
+    let lines = read_rlines(filename)?;
     let labels = vec![
         Label { name: "new label".to_owned(), color: Color::Red, is_active: true, is_visible: true },
     ];
@@ -49,22 +49,22 @@ fn load_raw(fname: &str) -> std::io::Result<App> {
     let window = terminal::window_size().unwrap();
     let rng = rand::thread_rng();
     
-    Ok(App::new(fname, lines, labels, window, rng))
+    Ok(App::new(filename, lines, labels, window, rng))
 }
 
-fn load_spacy(fname: &str) -> std::io::Result<App> {
+fn load_spacy(filename: &str) -> std::io::Result<App> {
     let mut rng = rand::thread_rng();
-    let (lines, labels, window) = read_slines(fname, &mut rng)?;
-    Ok(App::new(fname, lines, labels, window, rng))
+    let (lines, labels, window) = read_slines(filename, &mut rng)?;
+    Ok(App::new(filename, lines, labels, window, rng))
 }
 
-fn load_tan(fname: &str) -> std::io::Result<App> {
-    let s = std::fs::read_to_string(fname)?;
+fn load_tan(filename: &str) -> std::io::Result<App> {
+    let s = std::fs::read_to_string(filename)?;
     serde_json::from_str(&s).map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "oh no!"))
 }
 
-fn read_rlines(fname: &str) -> std::io::Result<Vec<Line>> {
-    let f = File::open(fname).unwrap();
+fn read_rlines(filename: &str) -> std::io::Result<Vec<Line>> {
+    let f = File::open(filename).unwrap();
     let mut b = BufReader::new(f);
 
     let mut lines = Vec::new();
@@ -73,12 +73,13 @@ fn read_rlines(fname: &str) -> std::io::Result<Vec<Line>> {
 
     while b.read_line(&mut s).unwrap_or(0) > 0 {
         let l = Line {
-            char_offset: 0, // todo
-            is_wrapping: false,
+            is_virtual: false,
             row: n,
             tags: Vec::new(),
             text: s.strip_suffix("\n").map(|x| x.to_owned()).unwrap_or(s.clone()),
             width: s.len() as u16 - 1,
+            wrapping_offset: None,
+            wrapping_whitespace: None,
         };
         lines.push(l);
 
@@ -89,8 +90,8 @@ fn read_rlines(fname: &str) -> std::io::Result<Vec<Line>> {
     Ok(lines)
 }
 
-fn read_slines(fname: &str, rng: &mut ThreadRng) -> std::io::Result<(Vec<Line>, Vec<Label>, WindowSize)> {
-    let f = File::open(fname).unwrap();
+fn read_slines(filename: &str, rng: &mut ThreadRng) -> std::io::Result<(Vec<Line>, Vec<Label>, WindowSize)> {
+    let f = File::open(filename).unwrap();
     let mut b = BufReader::new(f);
 
     let spacy: Spacy = serde_json::from_reader(&mut b)?;
@@ -110,12 +111,13 @@ fn read_slines(fname: &str, rng: &mut ThreadRng) -> std::io::Result<(Vec<Line>, 
         };
 
         let line = Line {
-            char_offset: if lines.is_empty() { 0 } else { lines[lines.len() - 1].char_offset + lines[lines.len() - 1].width as u64 },
-            is_wrapping: true,
+            is_virtual: true,
             row: k,
             tags: Vec::new(),
             text: ttext.to_owned(),
             width: ttext.len() as u16,
+            wrapping_whitespace: None,
+            wrapping_offset: Some(if lines.is_empty() { 0 } else { lines[lines.len() - 1].wrapping_offset.unwrap() + lines[lines.len() - 1].width as u64 }),
         };
 
         lines.push(line);
@@ -132,9 +134,9 @@ fn read_slines(fname: &str, rng: &mut ThreadRng) -> std::io::Result<(Vec<Line>, 
     labels[0].is_active = true;
 
     for ent in spacy.ents {
-        let n = lines.iter().position(|x| x.char_offset > ent.start).unwrap();
+        let n = lines.iter().position(|x| x.wrapping_offset.unwrap() > ent.start).unwrap();
 
-        let o = lines[n-1].char_offset;
+        let o = lines[n-1].wrapping_offset.unwrap();
         let w = lines[n-1].width;
 
         let start = ((ent.start - o) % w as u64) as u16;
@@ -172,8 +174,8 @@ pub fn save_tan(app: &mut App) -> std::io::Result<()> {
     let mode = app.mode.clone();
     app.set_normal_mode();
 
-    if !app.fname.ends_with(".tan") { app.fname.push_str(".tan") };
-    let mut f = File::create(&app.fname)?;
+    if !app.filename.ends_with(".tan") { app.filename.push_str(".tan") };
+    let mut f = File::create(&app.filename)?;
 
     let s = serde_json::to_string(&app)?;
     f.write_all(s.as_bytes())?;

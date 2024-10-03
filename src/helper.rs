@@ -15,7 +15,7 @@ pub const COLORS: [Color; 7] = [
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct App {
-    pub fname: String,
+    pub filename: String,
     pub color_column: i8,
     pub command: String,
     pub cursor_column: u16,
@@ -28,7 +28,6 @@ pub struct App {
     pub modal_start_row: u16,
     pub mode: Mode,
     pub nlines: u16,
-    pub offset_column: u16,
     pub offset_row: u16,
     #[serde(skip)]
     pub rng: ThreadRng,
@@ -40,9 +39,9 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(fname: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize, rng: ThreadRng) -> App {
+    pub fn new(filename: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize, rng: ThreadRng) -> App {
         App {
-            fname: fname.to_owned(),
+            filename: filename.to_owned(),
             color_column: 0,
             command: String::new(),
             cursor_column: 0,
@@ -55,7 +54,6 @@ impl App {
             modal_start_column: 0,
             modal_start_row: 0,
             mode: Mode::Normal,
-            offset_column: 0,
             offset_row: 0,
             rng,
             visual_row: 0,
@@ -151,13 +149,13 @@ pub struct Label {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Line {
-    pub char_offset: u64,
-    pub is_wrapping: bool,
+    pub is_virtual: bool,
     pub row: u16,
-    // pub whitespace_trim: String,
     pub tags: Vec<Tag>,
     pub text: String,
     pub width: u16,
+    pub wrapping_offset: Option<u64>,
+    pub wrapping_whitespace: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

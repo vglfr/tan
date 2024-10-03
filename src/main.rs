@@ -60,6 +60,7 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Modal =>
                 match keycode {
+                    // ':' => app.set_command_mode(),
                     ':' => common::handle_colon(&mut app, &mut stdout)?,
                     'm' => modal::handle_m(&mut app, &mut stdout)?,
 
@@ -135,6 +136,7 @@ fn main() -> std::io::Result<()> {
                 },
         }
 
+        // render_event(&mut app)
     }
 }
 
@@ -148,11 +150,25 @@ fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     common::render_statusline(app, stdout)
 }
 
-// fn manage_render() {
+// u8 00000000
+//    ^    app.mode
+//     ^   app.offset_row
+//      ^  app.cursor_column
+//       ^ app.cursor_row
+fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+//     app.mode | app.is_command() => command(),
 //     app.mode => statusline(),
-//     app.offset_column | app.offset_row => { view(), statusline() },
-//     app.cursor_column | app.cursor_row => { cursor(), statusline() }, 
-// }
+//     app.offset_row => { view(), statusline() },
+//     app.cursor_column => { cursor(), statusline() }, 
+//     app.cursor_row => { cursor(), statusline() }, 
+//     _ => (), 
+    // if app.is_command() {
+    //     render_command()?;
+    // } else {
+    //     render_statusline()?;
+    // }
+    Ok(())
+}
 
 fn extract_keycode() -> std::io::Result<char> {
     match read()? {

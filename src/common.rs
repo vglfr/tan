@@ -7,7 +7,6 @@ use crate::{command, helper::{App, Mode}, modal, normal};
 #[allow(non_snake_case)]
 pub fn handle_E(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_column = app.lines[app.nlines as usize - 1].width - 1;
-    app.offset_column = 0; // todo
 
     app.cursor_row = std::cmp::min(app.nlines - 2, app.window_height - 2);
     app.offset_row = app.nlines - app.cursor_row - 1;
@@ -46,7 +45,6 @@ pub fn handle_M(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 #[allow(non_snake_case)]
 pub fn handle_S(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_column = 0;
-    app.offset_column = 0;
 
     app.cursor_row = 0;
     app.offset_row = 0;
@@ -83,8 +81,6 @@ pub fn handle_colon(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     if app.cursor_column > 0 {
         app.cursor_column -= 1;
-    } else if app.offset_column > 0 {
-        app.offset_column -= 1;
     } else if app.cursor_row > 0 {
         app.cursor_row -= 1;
         manage_horizontal_overflow(app);
@@ -123,16 +119,12 @@ pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    if app.cursor_column + app.offset_column < app.get_current_line_width() - 1 && app.cursor_column < app.window_width - 1 {
+    if app.cursor_column < app.get_current_line_width() - 1 && app.cursor_column < app.window_width - 1 {
         app.cursor_column += 1;
-    } else if app.cursor_column + app.offset_column < app.get_current_line_width() - 1 {
-        app.offset_column += 1;
     } else if app.cursor_row < app.window_height - 2 {
-        app.offset_column = 0;
         app.cursor_column = 0;
         app.cursor_row += 1;
     } else if app.cursor_row + app.offset_row < app.nlines - 1 {
-        app.offset_column = 0;
         app.cursor_column = 0;
         app.offset_row += 1;
     }
@@ -143,7 +135,7 @@ pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_w(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let current_column = app.cursor_column + app.offset_column;
+    let current_column = app.cursor_column;
     let mut line_iter = app.get_current_line().text.chars().skip(current_column as usize + 1).peekable();
 
     if let Some(next) = line_iter.peek() {
@@ -164,7 +156,7 @@ pub fn handle_w(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let current_column = app.cursor_column + app.offset_column;
+    let current_column = app.cursor_column;
     let line = app.get_current_line();
 
     let mut line_iter = line.text.chars().rev().skip((line.width - current_column) as usize).peekable();
@@ -188,7 +180,6 @@ pub fn handle_b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 pub fn handle_s(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_column = 0;
-    app.offset_column = 0;
 
     normal::render_normal(app, stdout)?;
     render_statusline(app, stdout)
@@ -227,16 +218,10 @@ pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 fn manage_horizontal_overflow(app: &mut App) {
     app.cursor_column = std::cmp::min(app.get_current_line_width() - 1, app.window_width - 1);
-    app.offset_column = app.get_current_line_width() - app.cursor_column - 1;
 }
 
 fn manage_vertical_overflow(app: &mut App) {
-    if app.get_current_line_width() - 1 < app.offset_column {
-        app.cursor_column = 0;
-        app.offset_column = app.get_current_line_width() - 1;
-    } else if app.get_current_line_width() - 1 < app.offset_column + app.cursor_column {
-        app.cursor_column = app.get_current_line_width() - app.offset_column - 1;
-    }
+    app.cursor_column = app.get_current_line_width() - 1;
 }
 
 fn move_visual(app: &mut App) {
@@ -259,7 +244,7 @@ pub fn render_statusline(app: &mut App, stdout: &mut Stdout) -> std::io::Result<
         "{}% {}:{}",
         (app.cursor_row + app.offset_row) / app.nlines,
         app.cursor_row + app.offset_row,
-        app.cursor_column + app.offset_column,
+        app.cursor_column,
     );
     
     queue!(

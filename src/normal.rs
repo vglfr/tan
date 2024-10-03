@@ -46,7 +46,7 @@ pub fn render_normal(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
 
             queue!(
                 stdout,
-                cursor::MoveTo(chunk.start - app.offset_column, line.row - app.offset_row),
+                cursor::MoveTo(chunk.start, line.row - app.offset_row),
                 style::SetBackgroundColor(chunk.color),
                 style::Print(text),
             )?;
@@ -76,11 +76,11 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     points.dedup();
 
     points = points.into_iter().filter(
-        |x| app.offset_column < *x && *x < std::cmp::min(app.offset_column + app.window_width, line.width)
+        |x| *x < std::cmp::min(app.window_width, line.width)
     ).collect();
 
-    points.insert(0, app.offset_column);
-    points.push(std::cmp::min(app.offset_column + app.window_width, line.width));
+    points.insert(0, 0);
+    points.push(std::cmp::min(app.window_width, line.width));
 
     let chunks = points[1..].iter().zip(points.clone()).filter_map(|(e,s)| {
         let tag = line.tags.iter().find_map(|x| if s == x.start { Some(x.label) } else { None });
