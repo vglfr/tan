@@ -154,8 +154,7 @@ pub struct Line {
     pub tags: Vec<Tag>,
     pub text: String,
     pub width: u16,
-    pub wrapping_offset: Option<u64>,
-    pub wrapping_whitespace: Option<String>,
+    pub wrapping_offset: usize,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

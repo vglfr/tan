@@ -33,20 +33,22 @@ pub fn render_normal(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     let end = std::cmp::min(app.window_height + app.offset_row - 1, app.nlines) as usize;
 
     for line in &app.lines[start..end] {
-        // if line.is_wrapping {
-        //     queue!(
-        //         stdout,
-        //         cursor::MoveTo(0, line.row - app.offset_row),
-        //         style::Print("⤷"),
-        //     )?;
-        // }
+        if line.is_virtual {
+            queue!(
+                stdout,
+                cursor::MoveTo(0, line.row - app.offset_row),
+                style::SetForegroundColor(Color::DarkGrey),
+                style::Print("⤷ "),
+            )?;
+        }
 
         for chunk in chunk_line(line, app) {
             let text = &line.text[chunk.start.into()..chunk.end.into()];
 
             queue!(
                 stdout,
-                cursor::MoveTo(chunk.start, line.row - app.offset_row),
+                cursor::MoveTo(chunk.start + if line.is_virtual { 2 } else { 0 }, line.row - app.offset_row),
+                style::SetForegroundColor(Color::White),
                 style::SetBackgroundColor(chunk.color),
                 style::Print(text),
             )?;
