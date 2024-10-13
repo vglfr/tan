@@ -24,17 +24,18 @@ Tasks:
 + help screen
 + deprecate overflow mode
 + fix wrap line display
++ fix file reading
 
-- fix file reading
 - fix cursor movement
 - fix blinking (too much redraw? even on non-redrawing hl moves)
+- fix tag display across virtual rows
 - multiline tagging
 - overlapping tags
 
+- terminal resize
 - save spacy format (for QA)
 - error handling
 - debug logging
-- terminal resize
 - use mouse to set cursor position
 - use mouse for selection
 - use mouse wheel for scrolling

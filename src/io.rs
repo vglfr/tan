@@ -28,6 +28,9 @@ struct Ent {
     start: usize,
 }
 
+type Accumulator = (Vec<Line>, usize, usize);
+type Enumerate = (usize, String);
+
 pub fn load_file(argv: &Argv) -> std::io::Result<App> {
     match argv.format {
         FType::Raw => load_raw(&argv.name),
@@ -85,15 +88,11 @@ fn read_spacy(filename: &str) -> std::io::Result<(String, Vec<Ent>, Vec<Label>)>
     Ok((spacy.text, spacy.ents, labels))
 }
 
-type Tmp = (Vec<Line>, usize, usize);
-type Tmp2 = (usize, String);
-
-fn virtualize_line(acc: Tmp, item: Tmp2) -> Tmp {
+fn virtualize_line(acc: Accumulator, item: Enumerate) -> Accumulator {
     let (mut lines, mut absolute_offset, window_width) = acc;
     let (absolute_row, text) = item;
 
     let mut virtual_offset = 0;
-    let mut virtual_row = 0;
 
     loop {
         let chunk = text[virtual_offset..std::cmp::min(virtual_offset + window_width, text.len())].to_string();
@@ -130,18 +129,15 @@ fn virtualize_line(acc: Tmp, item: Tmp2) -> Tmp {
 }
 
 fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> Vec<Line> {
-    dbg!(&ents[..8]);
-    dbg!(&lines[..10]);
-    todo!();
     for ent in ents {
-        let tmp = lines.iter().position(|x| x.virtual_offset > ent.start);
+        let tmp = lines.iter().position(|x| x.absolute_offset > ent.start);
         if tmp.is_none() {
             dbg!(&ent);
             dbg!(&lines[..8]);
         }
         let n = tmp.unwrap();
 
-        let o = lines[n-1].virtual_offset;
+        let o = lines[n-1].absolute_offset;
         let w = lines[n-1].width;
 
         let start = (ent.start - o) % w;
