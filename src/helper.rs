@@ -149,12 +149,14 @@ pub struct Label {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Line {
+    pub absolute_offset: usize,
+    pub absolute_row: usize,
     pub is_virtual: bool,
-    pub row: u16,
     pub tags: Vec<Tag>,
     pub text: String,
+    pub virtual_offset: usize,
+    pub virtual_row: u16,
     pub width: u16,
-    pub wrapping_offset: usize,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

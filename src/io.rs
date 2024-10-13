@@ -4,7 +4,6 @@ use std::io::{BufRead, BufReader, Write};
 use crossterm::style::Color;
 use crossterm::terminal::{self, WindowSize};
 use itertools::Itertools;
-use rand::{rngs::ThreadRng, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
 
 use crate::helper::{App, FType, Label, Line, Tag, COLORS};
@@ -44,10 +43,9 @@ fn load_raw(filename: &str) -> std::io::Result<App> {
     
     let lines = read_raw(filename).unwrap()
         .lines()
-        .flat_map(|x| virtualize_new_line(x.unwrap(), &window))
         .enumerate()
-        .map(|(i, mut x)| { x.row = i as u16; x })
-        .collect();
+        .fold((Vec::new(), 0, window.columns as usize - 2), |acc, (i, x)| virtualize_line(acc, (i, x.unwrap())))
+        .0;
     let labels = vec![Label { name: "label1".to_owned(), color: Color::Red, is_active: true, is_visible: true }];
 
     Ok(App::new(filename, lines, labels, window, rng))
@@ -58,7 +56,12 @@ fn load_spacy(filename: &str) -> std::io::Result<App> {
     let window = terminal::window_size()?;
 
     let (text, ents, labels) = read_spacy(filename)?;
-    let lines = text.split("\n").flat_map(|x| virtualize_existing_line(x, &ents, &labels, &window)).collect();
+    let bare_lines = text
+        .split("\n")
+        .enumerate()
+        .fold((Vec::new(), 0, window.columns as usize - 2), |acc, (i, x)| virtualize_line(acc, (i, x.to_owned())))
+        .0;
+    let lines = assign_labels(bare_lines, &ents, &labels);
 
     Ok(App::new(filename, lines, labels, window, rng))
 }
@@ -83,15 +86,18 @@ fn read_spacy(filename: &str) -> std::io::Result<(String, Vec<Ent>, Vec<Label>)>
     Ok((spacy.text, spacy.ents, labels))
 }
 
-fn virtualize_new_line(text: String, window: &WindowSize) -> Vec<Line> {
-    let mut lines: Vec<Line> = Vec::new();
-    let mut n = 0;
+type Tmp = (Vec<Line>, usize, usize);
+type Tmp2 = (usize, String);
 
+fn virtualize_line(acc: Tmp, item: Tmp2) -> Tmp {
+    let (mut lines, absolute_offset, window_width) = acc;
+    let (absolute_row, text) = item;
+
+    let mut n = 0;
     let text_len = text.len();
-    let max_chunk = window.columns as usize - 2;
 
     loop {
-        let chunk = text[n..std::cmp::min(max_chunk + n, text_len)].to_string();
+        let chunk = text[n..std::cmp::min(n + window_width, text_len)].to_string();
 
         let virtual_text = if n + chunk.len() < text_len {
             chunk.trim_end_matches(|x| !char::is_whitespace(x))
@@ -100,12 +106,14 @@ fn virtualize_new_line(text: String, window: &WindowSize) -> Vec<Line> {
         };
 
         let line = Line {
+            absolute_offset: 0,
+            absolute_row: 0,
             is_virtual: if n == 0 { false } else { true },
-            row: 0,
             tags: Vec::new(),
             text: virtual_text.to_owned(),
+            virtual_offset: n,
+            virtual_row: 0,
             width: virtual_text.len() as u16,
-            wrapping_offset: n,
         };
 
         lines.push(line);
@@ -114,89 +122,52 @@ fn virtualize_new_line(text: String, window: &WindowSize) -> Vec<Line> {
         if n == text_len { break }
     }
 
+    // .map(|(i, mut x)| { x.virtual_row = i as u16; x })
+
+    (lines, absolute_offset, window_width)
+}
+
+fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> Vec<Line> {
+    dbg!(&ents[..8]);
+    dbg!(&lines[..10]);
+    todo!();
+    for ent in ents {
+        let tmp = lines.iter().position(|x| x.virtual_offset as u64 > ent.start);
+        if tmp.is_none() {
+            dbg!(&ent);
+            dbg!(&lines[..8]);
+        }
+        let n = tmp.unwrap();
+
+        let o = lines[n-1].virtual_offset;
+        let w = lines[n-1].width;
+
+        let start = ((ent.start - o as u64) % w as u64) as u16;
+        let end = ((ent.end - o as u64) % w as u64) as u16;
+
+        if start < end || end == 0 {
+            lines[n-1].tags.push(Tag {
+                start,
+                end,
+                label: labels.iter().position(|x| x.name == ent.label).unwrap(),
+            });
+        } else {
+            lines[n-1].tags.push(Tag {
+                start,
+                end: 0,
+                label: labels.iter().position(|x| x.name == ent.label).unwrap(),
+            });
+
+            lines[n].tags.push(Tag {
+                start: 0,
+                end,
+                label: labels.iter().position(|x| x.name == ent.label).unwrap(),
+            });
+        }
+    }
+
     lines
 }
-
-fn virtualize_existing_line(line: &str, ents: &Vec<Ent>, labels: &Vec<Label>, window: &WindowSize) -> Vec<Line> {
-    // let window = terminal::window_size().unwrap();
-
-    // let mut lines: Vec<Line> = Vec::new();
-    // let mut n = 0;
-    // let mut k = 0;
-
-    // while n < spacy.text.len() {
-    //     let text = spacy.text[n..std::cmp::min(n + window.columns as usize, spacy.text.len())].to_owned();
-
-    //     let ttext = if n + text.len() < spacy.text.len() {
-    //         text.trim_end_matches(|x| !char::is_whitespace(x)).trim_end()
-    //     } else {
-    //         &text
-    //     };
-
-    //     let line = Line {
-    //         is_virtual: true,
-    //         row: k,
-    //         tags: Vec::new(),
-    //         text: ttext.to_owned(),
-    //         width: ttext.len() as u16,
-    //         wrapping_whitespace: None,
-    //         wrapping_offset: Some(if lines.is_empty() { 0 } else { lines[lines.len() - 1].wrapping_offset.unwrap() + lines[lines.len() - 1].width as u64 }),
-    //     };
-
-    //     lines.push(line);
-
-    //     k += 1;
-    //     n += ttext.len();
-    // }
-
-    // for ent in spacy.ents {
-    //     let n = lines.iter().position(|x| x.wrapping_offset.unwrap() > ent.start).unwrap();
-
-    //     let o = lines[n-1].wrapping_offset.unwrap();
-    //     let w = lines[n-1].width;
-
-    //     let start = ((ent.start - o) % w as u64) as u16;
-    //     let end = ((ent.end - o) % w as u64) as u16;
-
-    //     if start < end || end == 0 {
-    //         lines[n-1].tags.push(Tag {
-    //             start,
-    //             end,
-    //             label: labels.iter().position(|x| x.name == ent.label).unwrap(),
-    //         });
-    //     } else {
-    //         lines[n-1].tags.push(Tag {
-    //             start,
-    //             end: 0,
-    //             label: labels.iter().position(|x| x.name == ent.label).unwrap(),
-    //         });
-
-    //         lines[n].tags.push(Tag {
-    //             start: 0,
-    //             end,
-    //             label: labels.iter().position(|x| x.name == ent.label).unwrap(),
-    //         });
-    //     }
-    // }
-
-    // let mut labels: Vec<Label> = spacy.ents.iter()
-    //     .map(|x| x.label.clone())
-    //     .unique()
-    //     .map(|x| Label { is_active: false, name: x, color: *COLORS.choose(rng).unwrap(), is_visible: true })
-    //     .collect();
-    // labels[0].is_active = true;
-
-    // // terminal::disable_raw_mode()?;
-    // // dbg!(&lines);
-    // // todo!();
-
-    // Ok((lines, labels, window))
-    Vec::new()
-}
-
-// fn virtualize_line(line: String) -> Vec<Line> {
-//     Vec::new()
-// }
 
 fn parse_labels(ents: &Vec<Ent>) -> Vec<Label> {
     let mut labels = Vec::new();

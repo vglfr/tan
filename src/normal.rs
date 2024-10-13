@@ -36,7 +36,7 @@ pub fn render_normal(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
         if line.is_virtual {
             queue!(
                 stdout,
-                cursor::MoveTo(0, line.row - app.offset_row),
+                cursor::MoveTo(0, line.virtual_row - app.offset_row),
                 style::SetForegroundColor(Color::DarkGrey),
                 style::Print("⤷ "),
             )?;
@@ -47,7 +47,7 @@ pub fn render_normal(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
 
             queue!(
                 stdout,
-                cursor::MoveTo(chunk.start + if line.is_virtual { 2 } else { 0 }, line.row - app.offset_row),
+                cursor::MoveTo(chunk.start + if line.is_virtual { 2 } else { 0 }, line.virtual_row - app.offset_row),
                 style::SetForegroundColor(Color::White),
                 style::SetBackgroundColor(chunk.color),
                 style::Print(text),
@@ -68,7 +68,7 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     points.extend(starts);
     points.extend(ends);
 
-    if app.visual_row == line.row {
+    if app.visual_row == line.virtual_row {
         let (s,e) = app.get_visual_bounds();
         points.push(s);
         points.push(e);
@@ -90,7 +90,7 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
             if tag.is_some() {
                 let label = &app.labels[tag.unwrap()];
                 if label.is_visible { label.color } else { Color::Reset }
-            } else if app.visual_row == line.row && s == app.get_visual_bounds().0 && app.visual_start != app.visual_end {
+            } else if app.visual_row == line.virtual_row && s == app.get_visual_bounds().0 && app.visual_start != app.visual_end {
                 Color::Yellow
             } else {
                 Color::Reset
