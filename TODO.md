@@ -22,9 +22,11 @@ Tasks:
 + wbSE movement
 + status line / hints (active tag -- filename | tags under cursor | command -- cursor posiiton)
 + help screen
++ deprecate overflow mode
++ fix wrap line display
 
-- deprecate overflow mode
-- fix wrap line display
+- fix file reading
+- fix cursor movement
 - fix blinking (too much redraw? even on non-redrawing hl moves)
 - multiline tagging
 - overlapping tags

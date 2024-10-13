@@ -2,11 +2,11 @@ use std::io::{Stdout, Write};
 
 use crossterm::{cursor, execute, queue, style::{self, Color}};
 
-use crate::{command, helper::{App, Mode}, modal, normal};
+use crate::{app::{App, Mode}, command, helper, modal, normal};
 
 #[allow(non_snake_case)]
 pub fn handle_E(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.cursor_column = app.lines[app.nlines as usize - 1].width - 1;
+    app.cursor_column = app.lines[app.nlines - 1].width - 1;
 
     app.cursor_row = std::cmp::min(app.nlines - 2, app.window_height - 2);
     app.offset_row = app.nlines - app.cursor_row - 1;
@@ -136,7 +136,7 @@ pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 pub fn handle_w(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     let current_column = app.cursor_column;
-    let mut line_iter = app.get_current_line().text.chars().skip(current_column as usize + 1).peekable();
+    let mut line_iter = app.get_current_line().text.chars().skip(current_column + 1).peekable();
 
     if let Some(next) = line_iter.peek() {
         let offset = if next.is_whitespace() {
@@ -145,7 +145,7 @@ pub fn handle_w(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
             line_iter.take_while(|x| !x.is_whitespace()).collect::<Vec<_>>().len()
         };
 
-        app.cursor_column += offset as u16;
+        app.cursor_column += offset;
 
         move_visual(app);
         normal::render_normal(app, stdout)?;
@@ -159,7 +159,7 @@ pub fn handle_b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     let current_column = app.cursor_column;
     let line = app.get_current_line();
 
-    let mut line_iter = line.text.chars().rev().skip((line.width - current_column) as usize).peekable();
+    let mut line_iter = line.text.chars().rev().skip(line.width - current_column).peekable();
 
     if let Some(next) = line_iter.peek() {
         let offset = if next.is_whitespace() {
@@ -168,7 +168,7 @@ pub fn handle_b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
             line_iter.take_while(|x| !x.is_whitespace()).collect::<Vec<_>>().len()
         };
 
-        app.cursor_column -= offset as u16;
+        app.cursor_column -= offset;
 
         move_visual(app);
         normal::render_normal(app, stdout)?;
@@ -249,7 +249,7 @@ pub fn render_statusline(app: &mut App, stdout: &mut Stdout) -> std::io::Result<
     
     queue!(
         stdout,
-        cursor::MoveTo(0, app.window_height - 1),
+        helper::move_to(0, app.window_height - 1),
         style::SetBackgroundColor(mode_color),
         style::Print("     "),
     )?;
@@ -263,14 +263,14 @@ pub fn render_statusline(app: &mut App, stdout: &mut Stdout) -> std::io::Result<
     if let Some(n) = label {
         queue!(
             stdout,
-            cursor::MoveTo(8, app.window_height - 1),
+            helper::move_to(8, app.window_height - 1),
             style::SetBackgroundColor(app.labels[n].color),
             style::Print("      "),
         )?;
 
         queue!(
             stdout,
-            cursor::MoveTo(16, app.window_height - 1),
+            helper::move_to(16, app.window_height - 1),
             style::SetBackgroundColor(Color::Reset),
             style::Print(&app.labels[n].name),
         )?;
@@ -285,11 +285,11 @@ pub fn render_statusline(app: &mut App, stdout: &mut Stdout) -> std::io::Result<
 
     queue!(
         stdout,
-        cursor::MoveTo(70, app.window_height - 1),
+        helper::move_to(70, app.window_height - 1),
         style::SetBackgroundColor(Color::Reset),
         style::Print(status),
     )?;
 
-    queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
+    queue!(stdout, helper::move_to(app.cursor_column, app.cursor_row))?;
     stdout.flush()
 }

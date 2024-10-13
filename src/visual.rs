@@ -1,4 +1,4 @@
-use crate::helper::App;
+use crate::app::App;
 
 pub fn handle_v(app: &mut App) {
     app.set_normal_mode();

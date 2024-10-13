@@ -1,3 +1,4 @@
+pub mod app;
 pub mod color;
 pub mod command;
 pub mod common;
@@ -11,16 +12,16 @@ pub mod visual;
 use std::io::Stdout;
 
 use clap::Parser;
-use crossterm::{cursor, event::{read, Event, KeyCode, KeyModifiers}, queue, terminal};
+use crossterm::{event::{read, Event, KeyCode, KeyModifiers}, queue, terminal};
 
-use helper::{App, FType, Mode};
+use app::{App, FType, Mode};
 
 #[derive(Debug, Parser)]
 #[command(version)]
 struct Argv {
-    #[clap(default_value = "data/test2.json")]
+    #[clap(default_value = "data/test.txt")]
     name: String,
-    #[clap(short, long, value_enum, default_value_t = FType::Spacy)]
+    #[clap(short, long, value_enum, default_value_t = FType::Raw)]
     format: FType,
 }
 
@@ -144,7 +145,7 @@ fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     terminal::enable_raw_mode()?;
 
     queue!(stdout, terminal::EnterAlternateScreen)?;
-    queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
+    queue!(stdout, helper::move_to(app.cursor_column, app.cursor_row))?;
 
     normal::render_normal(app, stdout)?;
     common::render_statusline(app, stdout)
@@ -155,7 +156,7 @@ fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 //     ^   app.offset_row
 //      ^  app.cursor_column
 //       ^ app.cursor_row
-fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+// fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 //     app.mode | app.is_command() => command(),
 //     app.mode => statusline(),
 //     app.offset_row => { view(), statusline() },
@@ -167,8 +168,8 @@ fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     // } else {
     //     render_statusline()?;
     // }
-    Ok(())
-}
+//     Ok(())
+// }
 
 fn extract_keycode() -> std::io::Result<char> {
     match read()? {

@@ -2,10 +2,10 @@ use std::io::Stdout;
 
 use crossterm::{cursor, execute};
 
-use crate::{helper::App, modal, normal};
+use crate::{app::App, modal, normal};
 
 pub fn handle_key(c: char, app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.labels[app.modal_row as usize].name.push(c);
+    app.labels[app.modal_row].name.push(c);
     let modal_start_column = app.modal_start_column;
 
     modal::render_modal(app, stdout)?;
@@ -13,7 +13,7 @@ pub fn handle_key(c: char, app: &mut App, stdout: &mut Stdout) -> std::io::Resul
 }
 
 pub fn handle_08(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let name = &mut app.labels[app.modal_row as usize].name;
+    let name = &mut app.labels[app.modal_row].name;
     
     if !name.is_empty() {
         name.pop();

@@ -1,12 +1,11 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 
-use crossterm::style::Color;
-use crossterm::terminal::{self, WindowSize};
+use crossterm::{style::Color, terminal};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::helper::{App, FType, Label, Line, Tag, COLORS};
+use crate::app::{App, FType, Label, Line, Tag, COLORS};
 use crate::Argv;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -24,9 +23,9 @@ struct Spacy {
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Ent {
-    end: u64,
+    end: usize,
     label: String,
-    start: u64,
+    start: usize,
 }
 
 pub fn load_file(argv: &Argv) -> std::io::Result<App> {
@@ -90,39 +89,42 @@ type Tmp = (Vec<Line>, usize, usize);
 type Tmp2 = (usize, String);
 
 fn virtualize_line(acc: Tmp, item: Tmp2) -> Tmp {
-    let (mut lines, absolute_offset, window_width) = acc;
+    let (mut lines, mut absolute_offset, window_width) = acc;
     let (absolute_row, text) = item;
 
-    let mut n = 0;
-    let text_len = text.len();
+    let mut virtual_offset = 0;
+    let mut virtual_row = 0;
 
     loop {
-        let chunk = text[n..std::cmp::min(n + window_width, text_len)].to_string();
+        let chunk = text[virtual_offset..std::cmp::min(virtual_offset + window_width, text.len())].to_string();
 
-        let virtual_text = if n + chunk.len() < text_len {
+        let virtual_text = if virtual_offset + chunk.len() < text.len() {
             chunk.trim_end_matches(|x| !char::is_whitespace(x))
         } else {
             &chunk
         };
 
         let line = Line {
-            absolute_offset: 0,
-            absolute_row: 0,
-            is_virtual: if n == 0 { false } else { true },
+            absolute_offset,
+            absolute_row,
+            is_virtual: virtual_offset > 0,
             tags: Vec::new(),
             text: virtual_text.to_owned(),
-            virtual_offset: n,
-            virtual_row: 0,
-            width: virtual_text.len() as u16,
+            virtual_offset,
+            virtual_row: lines.len(),
+            width: virtual_text.len(),
         };
 
         lines.push(line);
-        n += virtual_text.len();
 
-        if n == text_len { break }
+        absolute_offset += virtual_text.len();
+        virtual_offset += virtual_text.len();
+
+        if virtual_offset == text.len() {
+            absolute_offset += 1;
+            break
+        }
     }
-
-    // .map(|(i, mut x)| { x.virtual_row = i as u16; x })
 
     (lines, absolute_offset, window_width)
 }
@@ -132,7 +134,7 @@ fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> 
     dbg!(&lines[..10]);
     todo!();
     for ent in ents {
-        let tmp = lines.iter().position(|x| x.virtual_offset as u64 > ent.start);
+        let tmp = lines.iter().position(|x| x.virtual_offset > ent.start);
         if tmp.is_none() {
             dbg!(&ent);
             dbg!(&lines[..8]);
@@ -142,8 +144,8 @@ fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> 
         let o = lines[n-1].virtual_offset;
         let w = lines[n-1].width;
 
-        let start = ((ent.start - o as u64) % w as u64) as u16;
-        let end = ((ent.end - o as u64) % w as u64) as u16;
+        let start = (ent.start - o) % w;
+        let end = (ent.end - o) % w;
 
         if start < end || end == 0 {
             lines[n-1].tags.push(Tag {

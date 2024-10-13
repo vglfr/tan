@@ -1,16 +1,14 @@
 use std::io::{Stdout, Write};
 
-use crossterm::{
-    cursor, queue, style::{self, Color}, terminal::{self, ClearType}
-};
+use crossterm::{queue, style::{self, Color}, terminal::{self, ClearType}};
 use serde::{Deserialize, Serialize};
 
-use crate::helper::{App, Line};
+use crate::{app::{App, Line}, helper};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Chunk {
-    start: u16,
-    end: u16,
+    start: usize,
+    end: usize,
     color: Color,
 }
 
@@ -30,13 +28,13 @@ pub fn render_normal(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     queue!(stdout, terminal::Clear(ClearType::All))?;
 
     let start = app.offset_row as usize;
-    let end = std::cmp::min(app.window_height + app.offset_row - 1, app.nlines) as usize;
+    let end = std::cmp::min(app.window_height + app.offset_row - 1, app.nlines);
 
     for line in &app.lines[start..end] {
         if line.is_virtual {
             queue!(
                 stdout,
-                cursor::MoveTo(0, line.virtual_row - app.offset_row),
+                helper::move_to(0, line.virtual_row - app.offset_row),
                 style::SetForegroundColor(Color::DarkGrey),
                 style::Print("⤷ "),
             )?;
@@ -47,7 +45,7 @@ pub fn render_normal(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
 
             queue!(
                 stdout,
-                cursor::MoveTo(chunk.start + if line.is_virtual { 2 } else { 0 }, line.virtual_row - app.offset_row),
+                helper::move_to(chunk.start + if line.is_virtual { 2 } else { 0 }, line.virtual_row - app.offset_row),
                 style::SetForegroundColor(Color::White),
                 style::SetBackgroundColor(chunk.color),
                 style::Print(text),
@@ -55,7 +53,7 @@ pub fn render_normal(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
         }
     }
 
-    queue!(stdout, cursor::MoveTo(app.cursor_column, app.cursor_row))?;
+    queue!(stdout, helper::move_to(app.cursor_column, app.cursor_row))?;
     stdout.flush()
 }
 
