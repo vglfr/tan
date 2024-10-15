@@ -104,18 +104,18 @@ fn main() -> std::io::Result<()> {
                     'k' => common::handle_k(&mut app),
                     'l' => common::handle_l(&mut app),
 
-                    'H' => common::handle_H(&mut app, &mut stdout)?,
-                    'M' => common::handle_M(&mut app, &mut stdout)?,
-                    'L' => common::handle_L(&mut app, &mut stdout)?,
+                    'H' => common::handle_H(&mut app),
+                    'M' => common::handle_M(&mut app),
+                    'L' => common::handle_L(&mut app),
 
-                    '\x11' => common::handle_pg_down(&mut app, &mut stdout)?,
-                    '\x12' => common::handle_pg_up(&mut app, &mut stdout)?,
+                    '\x11' => common::handle_pg_down(&mut app),
+                    '\x12' => common::handle_pg_up(&mut app),
 
                     's' => common::handle_s(&mut app),
                     'e' => common::handle_e(&mut app),
 
-                    'S' => common::handle_S(&mut app, &mut stdout)?,
-                    'E' => common::handle_E(&mut app, &mut stdout)?,
+                    'S' => common::handle_S(&mut app),
+                    'E' => common::handle_E(&mut app),
 
                     'w' => common::handle_w(&mut app, &mut stdout)?,
                     'b' => common::handle_b(&mut app, &mut stdout)?,
