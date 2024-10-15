@@ -2,7 +2,7 @@ use std::io::{Stdout, Write};
 
 use crossterm::{cursor, queue, style::{self, Color}, terminal};
 
-use crate::{app::App, common, helper, io};
+use crate::{app::App, helper, io, render};
 
 pub fn handle_key(c: char, app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.command.push(c);
@@ -29,8 +29,9 @@ pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.command.clear();
     app.set_normal_mode();
-    common::render_statusline(app, stdout)
+    render::render_status(app, stdout)
 }
 
 pub fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -75,7 +76,7 @@ fn execute_write(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_normal_mode();
 
     io::save_tan(app)?;
-    common::render_statusline(app, stdout)
+    render::render_status(app, stdout)
 }
 
 fn execute_debug(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -83,5 +84,5 @@ fn execute_debug(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_normal_mode();
 
     io::dump_debug(app)?;
-    common::render_statusline(app, stdout)
+    render::render_status(app, stdout)
 }

@@ -7,6 +7,7 @@ pub mod io;
 pub mod modal;
 pub mod name;
 pub mod normal;
+pub mod render;
 pub mod visual;
 
 use std::io::Stdout;
@@ -14,7 +15,7 @@ use std::io::Stdout;
 use clap::Parser;
 use crossterm::{event::{read, Event, KeyCode, KeyModifiers}, queue, terminal};
 
-use app::{App, FType, Mode};
+use app::{App, Change, FType, Mode};
 
 #[derive(Debug, Parser)]
 #[command(version)]
@@ -98,10 +99,10 @@ fn main() -> std::io::Result<()> {
                     'm' => common::handle_m(&mut app, &mut stdout)?,
                     'v' => normal::handle_v(&mut app),
 
-                    'h' => common::handle_h(&mut app, &mut stdout)?,
-                    'j' => common::handle_j(&mut app, &mut stdout)?,
-                    'k' => common::handle_k(&mut app, &mut stdout)?,
-                    'l' => common::handle_l(&mut app, &mut stdout)?,
+                    'h' => common::handle_h(&mut app),
+                    'j' => common::handle_j(&mut app),
+                    'k' => common::handle_k(&mut app),
+                    'l' => common::handle_l(&mut app),
 
                     'H' => common::handle_H(&mut app, &mut stdout)?,
                     'M' => common::handle_M(&mut app, &mut stdout)?,
@@ -110,8 +111,8 @@ fn main() -> std::io::Result<()> {
                     '\x11' => common::handle_pg_down(&mut app, &mut stdout)?,
                     '\x12' => common::handle_pg_up(&mut app, &mut stdout)?,
 
-                    's' => common::handle_s(&mut app, &mut stdout)?,
-                    'e' => common::handle_e(&mut app, &mut stdout)?,
+                    's' => common::handle_s(&mut app),
+                    'e' => common::handle_e(&mut app),
 
                     'S' => common::handle_S(&mut app, &mut stdout)?,
                     'E' => common::handle_E(&mut app, &mut stdout)?,
@@ -129,15 +130,15 @@ fn main() -> std::io::Result<()> {
                     'm' => common::handle_m(&mut app, &mut stdout)?,
                     'v' => visual::handle_v(&mut app),
 
-                    'h' => common::handle_h(&mut app, &mut stdout)?,
-                    'l' => common::handle_l(&mut app, &mut stdout)?,
+                    'h' => common::handle_h(&mut app),
+                    'l' => common::handle_l(&mut app),
 
                     't' => common::handle_t(&mut app, &mut stdout)?,
                     _ => (),
                 },
         }
 
-        // render_event(&mut app)
+        render_event(&mut app, &mut stdout)?;
     }
 }
 
@@ -147,29 +148,29 @@ fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     queue!(stdout, terminal::EnterAlternateScreen)?;
     queue!(stdout, helper::move_to(app.cursor_column, app.cursor_row))?;
 
-    normal::render_normal(app, stdout)?;
-    common::render_statusline(app, stdout)
+    render::render_offset(app, stdout)?;
+    render::render_status(app, stdout)
 }
 
-// u8 00000000
-//    ^    app.mode
-//     ^   app.offset_row
-//      ^  app.cursor_column
-//       ^ app.cursor_row
-// fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-//     app.mode | app.is_command() => command(),
-//     app.mode => statusline(),
-//     app.offset_row => { view(), statusline() },
-//     app.cursor_column => { cursor(), statusline() }, 
-//     app.cursor_row => { cursor(), statusline() }, 
-//     _ => (), 
-    // if app.is_command() {
-    //     render_command()?;
-    // } else {
-    //     render_statusline()?;
-    // }
-//     Ok(())
-// }
+fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    let flags = app.get_change_flags();
+
+    for flag in flags {
+        match flag {
+            Change::Cursor => render::render_cursor(app, stdout)?,
+            Change::Offset => render::render_offset(app, stdout)?,
+            Change::Status => render::render_status(app, stdout)?,
+            // app.mode | app.is_command() => command(),
+            // app.mode => statusline(),
+            // app.offset_row => { view(), statusline() },
+            // app.cursor_column => { cursor(), statusline() }, 
+            // app.cursor_row => { cursor(), statusline() }, 
+        }
+    }
+
+    app.change = 0;
+    Ok(())
+}
 
 fn extract_keycode() -> std::io::Result<char> {
     match read()? {

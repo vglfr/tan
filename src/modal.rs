@@ -8,7 +8,7 @@ use crossterm::{
 };
 use rand::seq::SliceRandom;
 
-use crate::{app::{self, App, Label}, color, helper, normal};
+use crate::{app::{self, App, Label}, color, helper, render};
 
 struct Chunk {
     text: String,
@@ -18,7 +18,7 @@ struct Chunk {
 pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_normal_mode();
     execute!(stdout, cursor::Show)?;
-    normal::render_normal(app, stdout)
+    render::render_offset(app, stdout)
 }
 
 pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -77,7 +77,7 @@ pub fn handle_c(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.labels[app.modal_row].is_visible ^= true;
 
-    normal::render_normal(app, stdout)?;
+    render::render_offset(app, stdout)?;
     render_modal(app, stdout)
 }
 

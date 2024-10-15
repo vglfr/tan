@@ -2,7 +2,7 @@ use std::io::{Stdout, Write};
 
 use crossterm::{cursor, execute, queue, style};
 
-use crate::{app::{self, App}, helper, modal, normal};
+use crate::{app::{self, App}, helper, modal, render};
 
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.color_column = (app.color_column - 1).rem_euclid(7);
@@ -18,7 +18,7 @@ pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.labels[app.modal_row].color = app::COLORS[app.color_column];
     app.set_modal_mode();
 
-    normal::render_normal(app, stdout)?;
+    render::render_offset(app, stdout)?;
     modal::render_modal(app, stdout)
 }
 

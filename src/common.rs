@@ -1,8 +1,8 @@
-use std::io::{Stdout, Write};
+use std::io::Stdout;
 
-use crossterm::{cursor, execute, queue, style::{self, Color}};
+use crossterm::{cursor, execute};
 
-use crate::{app::{App, Mode}, command, helper, modal, normal};
+use crate::{app::App, command, modal, render};
 
 #[allow(non_snake_case)]
 pub fn handle_E(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -11,8 +11,8 @@ pub fn handle_E(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = std::cmp::min(app.nlines - 2, app.window_height - 2);
     app.offset_row = app.nlines - app.cursor_row - 1;
 
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    render::render_offset(app, stdout)?;
+    render::render_status(app, stdout)
 }
 
 #[allow(non_snake_case)]
@@ -20,8 +20,8 @@ pub fn handle_H(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = 0;
     manage_vertical_overflow(app);
 
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    render::render_offset(app, stdout)?;
+    render::render_status(app, stdout)
 }
 
 #[allow(non_snake_case)]
@@ -29,8 +29,8 @@ pub fn handle_L(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = std::cmp::min(app.window_height - 2, app.nlines - 2);
     manage_vertical_overflow(app);
 
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    render::render_offset(app, stdout)?;
+    render::render_status(app, stdout)
 }
 
 #[allow(non_snake_case)]
@@ -38,8 +38,8 @@ pub fn handle_M(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = std::cmp::min(app.window_height / 2, app.nlines / 2);
     manage_vertical_overflow(app);
 
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    render::render_offset(app, stdout)?;
+    render::render_status(app, stdout)
 }
 
 #[allow(non_snake_case)]
@@ -49,8 +49,8 @@ pub fn handle_S(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.cursor_row = 0;
     app.offset_row = 0;
 
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    render::render_offset(app, stdout)?;
+    render::render_status(app, stdout)
 }
 
 pub fn handle_pg_down(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -59,8 +59,8 @@ pub fn handle_pg_down(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()>
 
     manage_vertical_overflow(app);
 
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    render::render_offset(app, stdout)?;
+    render::render_status(app, stdout)
 }
 
 pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -69,8 +69,8 @@ pub fn handle_pg_up(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
     manage_vertical_overflow(app);
 
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    render::render_offset(app, stdout)?;
+    render::render_status(app, stdout)
 }
 
 pub fn handle_colon(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -78,60 +78,76 @@ pub fn handle_colon(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     command::render_command(app, stdout)
 }
 
-pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_h(app: &mut App) {
     if app.cursor_column > 0 {
         app.cursor_column -= 1;
+        app.change |= 0b0101;
     } else if app.cursor_row > 0 {
         app.cursor_row -= 1;
-        manage_horizontal_overflow(app);
+        app.change |= 0b1001;
+        // manage_horizontal_overflow(app);
     } else if app.offset_row > 0 {
         app.offset_row -= 1;
-        manage_horizontal_overflow(app);
+        app.change |= 0b0011;
+        // manage_horizontal_overflow(app);
     }
 
-    move_visual(app);
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    // move_visual(app);
 }
 
-pub fn handle_j(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    if app.cursor_row + app.offset_row < app.nlines - 1 && app.cursor_row < app.window_height - 2 {
-        app.cursor_row += 1;
-    } else if app.cursor_row + app.offset_row < app.nlines - 1 {
-        app.offset_row += 1;
+pub fn handle_j(app: &mut App) {
+    if app.cursor_row + app.offset_row < app.nlines - 1 {
+        if app.cursor_row < app.window_height - 2 {
+            app.cursor_row += 1;
+            app.change |= 0b1001;
+        } else {
+            app.offset_row += 1;
+            app.change |= 0b0011;
+        }
     }
 
-    manage_vertical_overflow(app);
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    if app.change & 0b1010 > 0 {
+        let is_new = app.get_current_line().is_virtual;
+        let is_old = app.lines[app.cursor_row + app.offset_row - 1].is_virtual;
+        manage_virtual_shift(app, is_new, is_old);
+    }
+
+    // manage_vertical_overflow(app);
 }
 
-pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_k(app: &mut App) {
     if app.cursor_row > 0 {
         app.cursor_row -= 1;
+        app.change |= 0b1001;
     } else if app.offset_row > 0 {
         app.offset_row -= 1;
+        app.change |= 0b0011;
     }
 
-    manage_vertical_overflow(app);
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    if app.change & 0b1010 > 0 {
+        let is_new = app.get_current_line().is_virtual;
+        let is_old = app.lines[app.cursor_row + app.offset_row + 1].is_virtual;
+        manage_virtual_shift(app, is_new, is_old);
+    }
+
+    // manage_vertical_overflow(app);
 }
 
-pub fn handle_l(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_l(app: &mut App) {
     if app.cursor_column < app.get_current_line_width() - 1 && app.cursor_column < app.window_width - 1 {
         app.cursor_column += 1;
+        app.change |= 0b0101;
     } else if app.cursor_row < app.window_height - 2 {
         app.cursor_column = 0;
         app.cursor_row += 1;
+        app.change |= 0b1101;
     } else if app.cursor_row + app.offset_row < app.nlines - 1 {
         app.cursor_column = 0;
         app.offset_row += 1;
+        app.change |= 0b1011;
     }
 
-    move_visual(app);
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    // move_visual(app);
 }
 
 pub fn handle_w(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -148,8 +164,8 @@ pub fn handle_w(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         app.cursor_column += offset;
 
         move_visual(app);
-        normal::render_normal(app, stdout)?;
-        render_statusline(app, stdout)
+        render::render_offset(app, stdout)?;
+        render::render_status(app, stdout)
     } else {
         Ok(())
     }
@@ -171,24 +187,21 @@ pub fn handle_b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         app.cursor_column -= offset;
 
         move_visual(app);
-        normal::render_normal(app, stdout)?;
-        render_statusline(app, stdout)
+        render::render_offset(app, stdout)?;
+        render::render_status(app, stdout)
     } else {
         Ok(())
     }
 }
 
-pub fn handle_s(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_s(app: &mut App) {
     app.cursor_column = 0;
-
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    app.change |= 0b0100;
 }
 
-pub fn handle_e(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    manage_horizontal_overflow(app);
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+pub fn handle_e(app: &mut App) {
+    app.cursor_column = std::cmp::min(app.get_current_line_width() - 1, app.window_width - 1);
+    app.change |= 0b0100;
 }
 
 pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -204,20 +217,27 @@ pub fn handle_t(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.visual_start = app.cursor_column;
     app.visual_end = app.visual_start;
 
-    normal::render_normal(app, stdout)?;
-    render_statusline(app, stdout)
+    render::render_offset(app, stdout)?;
+    render::render_status(app, stdout)
 }
 
 pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_modal_mode();
     execute!(stdout, cursor::Hide)?;
 
-    normal::render_normal(app, stdout)?;
+    render::render_offset(app, stdout)?;
     modal::render_modal(app, stdout)
 }
 
-fn manage_horizontal_overflow(app: &mut App) {
-    app.cursor_column = std::cmp::min(app.get_current_line_width() - 1, app.window_width - 1);
+fn manage_virtual_shift(app: &mut App, is_new: bool, is_old: bool) {
+    if is_new != is_old {
+        if is_new {
+            app.cursor_column = app.cursor_column.saturating_sub(2);
+        } else {
+            app.cursor_column += 2;
+        }
+        app.change |= 0b0101;
+    }
 }
 
 fn manage_vertical_overflow(app: &mut App) {
@@ -228,68 +248,4 @@ fn move_visual(app: &mut App) {
     if app.is_visual() && app.cursor_row + app.offset_row == app.visual_row {
         app.visual_end = app.cursor_column;
     }
-}
-
-pub fn render_statusline(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let mode_color = match app.mode {
-        Mode::Color => Color::Yellow,
-        Mode::Command => Color::Red,
-        Mode::Modal => Color::Yellow,
-        Mode::Name => Color::Red,
-        Mode::Normal => Color::White,
-        Mode::Visual => Color::Blue,
-    };
-
-    let status = format!(
-        "{}% {}:{}",
-        (app.cursor_row + app.offset_row) / app.nlines,
-        app.cursor_row + app.offset_row,
-        app.cursor_column,
-    );
-    
-    queue!(
-        stdout,
-        helper::move_to(0, app.window_height - 1),
-        style::SetBackgroundColor(mode_color),
-        style::Print("     "),
-    )?;
-
-    let col = app.cursor_column;
-
-    let label = app.get_current_line().tags.iter()
-        .find(|x| x.start <= col && col < x.end)
-        .map(|x| x.label);
-
-    if let Some(n) = label {
-        queue!(
-            stdout,
-            helper::move_to(8, app.window_height - 1),
-            style::SetBackgroundColor(app.labels[n].color),
-            style::Print("      "),
-        )?;
-
-        queue!(
-            stdout,
-            helper::move_to(16, app.window_height - 1),
-            style::SetBackgroundColor(Color::Reset),
-            style::Print(&app.labels[n].name),
-        )?;
-    }
-
-    // queue!(
-    //     stdout,
-    //     cursor::MoveTo(8, app.window_height - 1),
-    //     style::SetBackgroundColor(Color::Reset),
-    //     style::Print(&app.fname),
-    // )?;
-
-    queue!(
-        stdout,
-        helper::move_to(70, app.window_height - 1),
-        style::SetBackgroundColor(Color::Reset),
-        style::Print(status),
-    )?;
-
-    queue!(stdout, helper::move_to(app.cursor_column, app.cursor_row))?;
-    stdout.flush()
 }

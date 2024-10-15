@@ -16,6 +16,7 @@ pub const COLORS: [Color; 7] = [
 #[derive(Debug, Deserialize, Serialize)]
 pub struct App {
     pub filename: String,
+    pub change: u8,
     pub color_column: usize,
     pub command: String,
     pub cursor_column: usize,
@@ -42,6 +43,7 @@ impl App {
     pub fn new(filename: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize, rng: ThreadRng) -> App {
         App {
             filename: filename.to_owned(),
+            change: 0,
             color_column: 0,
             command: String::new(),
             cursor_column: 0,
@@ -64,13 +66,28 @@ impl App {
         }
     }
 
+    // u8 00000000
+    //           ^    app.mode
+    //          ^   app.offset_row
+    //         ^  app.cursor_column
+    //        ^ app.cursor_row
+    pub fn get_change_flags(&mut self) -> Vec<Change> {
+        let mut flags = Vec::new();
+
+        if self.change & 0b0001 > 0 { flags.push(Change::Status); }
+        if self.change & 0b0010 > 0 { flags.push(Change::Offset); }
+        if self.change & 0b1100 > 0 { flags.push(Change::Cursor); }
+
+        flags
+    }
+
     pub fn get_visual_bounds(&self) -> (usize, usize) {
         let mut tmp = [self.visual_start, self.visual_end];
         tmp.sort();
         (tmp[0], tmp[1])
     }
 
-    pub fn get_current_line(&mut self) -> &Line {
+    pub fn get_current_line(&self) -> &Line {
         &self.lines[self.cursor_row + self.offset_row]
     }
 
@@ -137,6 +154,13 @@ pub enum FType {
     Raw,
     Spacy,
     Tan,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Change {
+    Cursor,
+    Offset,
+    Status,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
