@@ -25,10 +25,12 @@ Tasks:
 + deprecate overflow mode
 + fix wrap line display
 + fix file reading
++ fix cursor movement
++ fix blinking (too much redraw? even on non-redrawing hl moves)
 
-- fix cursor movement
-- fix blinking (too much redraw? even on non-redrawing hl moves)
+- finish refactoring (several impls, remaining methods)
 - fix tag display across virtual rows
+- fix statusline redraw (lingering tags)
 - multiline tagging
 - overlapping tags
 

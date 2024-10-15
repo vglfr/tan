@@ -97,7 +97,7 @@ fn main() -> std::io::Result<()> {
                 match keycode {
                     ':' => common::handle_colon(&mut app, &mut stdout)?,
                     'm' => common::handle_m(&mut app, &mut stdout)?,
-                    'v' => normal::handle_v(&mut app),
+                    'v' => app.normal_v(),
 
                     'h' => common::handle_h(&mut app),
                     'j' => common::handle_j(&mut app),
@@ -154,21 +154,21 @@ fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
 fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     let flags = app.get_change_flags();
+    app.change = 0;
 
     for flag in flags {
         match flag {
             Change::Cursor => render::render_cursor(app, stdout)?,
             Change::Offset => render::render_offset(app, stdout)?,
             Change::Status => render::render_status(app, stdout)?,
-            // app.mode | app.is_command() => command(),
-            // app.mode => statusline(),
-            // app.offset_row => { view(), statusline() },
-            // app.cursor_column => { cursor(), statusline() }, 
-            // app.cursor_row => { cursor(), statusline() }, 
         }
     }
 
-    app.change = 0;
+    // on error
+    // - write debug log
+    // - restore screen
+    // - write error message pointing to debug log
+
     Ok(())
 }
 

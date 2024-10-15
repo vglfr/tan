@@ -2,7 +2,17 @@ use std::io::Stdout;
 
 use crossterm::{cursor, execute};
 
-use crate::{app::App, modal, render};
+use crate::{app::{App, Mode}, modal, render};
+
+impl App {
+    pub fn is_name_mode(&self) -> bool {
+        self.mode == Mode::Name
+    }
+
+    pub fn set_name_mode(&mut self) {
+        self.mode = Mode::Name;
+    }
+}
 
 pub fn handle_key(c: char, app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.labels[app.modal_row].name.push(c);

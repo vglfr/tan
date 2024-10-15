@@ -116,10 +116,6 @@ impl App {
         self.mode == Mode::Modal
     }
 
-    pub fn is_normal(&self) -> bool {
-        self.mode == Mode::Normal
-    }
-
     pub fn is_visual(&self) -> bool {
         self.mode == Mode::Visual
     }
@@ -134,14 +130,6 @@ impl App {
 
     pub fn set_modal_mode(&mut self) {
         self.mode = Mode::Modal;
-    }
-
-    pub fn set_name_mode(&mut self) {
-        self.mode = Mode::Name;
-    }
-
-    pub fn set_normal_mode(&mut self) {
-        self.mode = Mode::Normal;
     }
 
     pub fn set_visual_mode(&mut self) {
