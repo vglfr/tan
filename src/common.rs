@@ -110,9 +110,9 @@ pub fn handle_pg_up(app: &mut App) {
     manage_vertical_drift(app);
 }
 
-pub fn handle_colon(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_colon(app: &mut App) {
     app.set_command_mode();
-    command::render_command(app, stdout)
+    app.change |= 0b0001;
 }
 
 pub fn handle_h(app: &mut App) {

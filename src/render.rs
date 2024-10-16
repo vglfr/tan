@@ -35,7 +35,7 @@ pub fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
         }
 
         for chunk in chunk_line(line, app) {
-            let text = &line.text[chunk.start.into()..chunk.end.into()];
+            let text = &line.text[chunk.start..chunk.end];
 
             queue!(
                 stdout,
@@ -114,48 +114,63 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
         style::Print(status),
     )?;
 
-    queue!(stdout, helper::move_to(app.cursor_column, app.cursor_row))?;
+    queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row))?;
     stdout.flush()
 }
 
 fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     let mut points = vec![0, line.width];
+    let (visual_start, visual_end) = app.get_visual_bounds();
 
-    let starts = line.tags.iter().map(|x| x.start);
-    let ends = line.tags.iter().map(|x| x.end);
-
-    points.extend(starts);
-    points.extend(ends);
-
-    if app.visual_row == line.virtual_row {
-        let (s,e) = app.get_visual_bounds();
-        points.push(s);
-        points.push(e);
+    if !app.is_empty_visual() && app.visual_row == line.virtual_row {
+        points.extend([visual_start, visual_end]);
     }
+
+    let tag_points = line.tags.iter().flat_map(|x| [x.start, x.end]);
+    points.extend(tag_points);
 
     points.sort();
     points.dedup();
 
-    points = points.into_iter().filter(
-        |x| *x < std::cmp::min(app.window_width, line.width)
-    ).collect();
+    let chunks = points[1..].iter().zip(points.clone())
+        .filter(|(e,s)| *e > s)
+        .map(|(e,s)| {
+            let tags = line.tags.iter()
+                .filter(|x| x.start <= s && *e <= x.end)
+                .map(|x| x.label)
+                .collect::<Vec<usize>>();
 
-    points.insert(0, 0);
-    points.push(std::cmp::min(app.window_width, line.width));
+            let color =
+                if !app.is_empty_visual() && app.visual_row == line.virtual_row && visual_start <= s && *e <= visual_end {
+                    Color::AnsiValue(172)
+                } else if tags.len() > 1 {
+                    Color::AnsiValue(160)
+                } else if let [tag] = tags[..] {
+                    let label = &app.labels[tag];
+                    if label.is_visible { label.color } else { Color::Reset }
+                } else {
+                    Color::Reset
+                };
 
-    let chunks = points[1..].iter().zip(points.clone()).filter_map(|(e,s)| {
-        let tag = line.tags.iter().find_map(|x| if s == x.start { Some(x.label) } else { None });
-        let color =
-            if tag.is_some() {
-                let label = &app.labels[tag.unwrap()];
-                if label.is_visible { label.color } else { Color::Reset }
-            } else if app.visual_row == line.virtual_row && s == app.get_visual_bounds().0 && app.visual_start != app.visual_end {
-                Color::Yellow
-            } else {
-                Color::Reset
-            };
-        if *e > s { Some(Chunk { start: s, end: *e, color }) } else { None }
-    }).collect();
+            Chunk { start: s, end: *e, color }
+        })
+        .collect();
+
+    // if line.virtual_row == 0 {
+    //     let mut f = File::create("/tmp/dbg.line.txt").unwrap();
+
+    //     f.write_all("line = ".as_bytes()).unwrap();
+    //     f.write_all(serde_json::to_string(&line).unwrap().as_bytes()).unwrap();
+    //     f.write_all("\n".as_bytes()).unwrap();
+
+    //     f.write_all("chunks = ".as_bytes()).unwrap();
+    //     f.write_all(serde_json::to_string(&chunks).unwrap().as_bytes()).unwrap();
+    //     f.write_all("\n".as_bytes()).unwrap();
+
+    //     f.write_all("points = ".as_bytes()).unwrap();
+    //     f.write_all(serde_json::to_string(&points).unwrap().as_bytes()).unwrap();
+    //     f.write_all("\n".as_bytes()).unwrap();
+    // }
 
     chunks
 }

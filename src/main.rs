@@ -63,7 +63,7 @@ fn main() -> std::io::Result<()> {
             Mode::Modal =>
                 match keycode {
                     // ':' => app.set_command_mode(),
-                    ':' => common::handle_colon(&mut app, &mut stdout)?,
+                    ':' => common::handle_colon(&mut app),
                     'm' => modal::handle_m(&mut app, &mut stdout)?,
 
                     'a' => modal::handle_a(&mut app, &mut stdout)?,
@@ -95,7 +95,7 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Normal =>
                 match keycode {
-                    ':' => common::handle_colon(&mut app, &mut stdout)?,
+                    ':' => common::handle_colon(&mut app),
                     'm' => common::handle_m(&mut app, &mut stdout)?,
                     'v' => app.normal_v(),
 
@@ -126,7 +126,7 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Visual =>
                 match keycode {
-                    ':' => common::handle_colon(&mut app, &mut stdout)?,
+                    ':' => common::handle_colon(&mut app),
                     'm' => common::handle_m(&mut app, &mut stdout)?,
                     'v' => app.visual_v(),
 

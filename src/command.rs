@@ -23,7 +23,6 @@ pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         "q" | "quit" => execute_exit(stdout),
         "w" | "write" => execute_write(app, stdout),
         "d" | "debug" => execute_debug(app, stdout),
-
         _ => Ok(()),
     }
 }

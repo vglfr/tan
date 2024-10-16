@@ -2,14 +2,31 @@ use clap::ValueEnum;
 use crossterm::{style::Color, terminal::WindowSize};
 use serde::{Deserialize, Serialize};
 
-pub const COLORS: [Color; 7] = [
-    Color::Black,
-    Color::Red,
-    Color::Green,
-    Color::Yellow,
-    Color::Blue,
-    Color::Magenta,
-    Color::Cyan,
+pub const COLORS: [Color; 24] = [
+    Color::AnsiValue(26),
+    Color::AnsiValue(206),
+    Color::AnsiValue(62),
+    Color::AnsiValue(102),
+    Color::AnsiValue(24),
+    Color::AnsiValue(174),
+    Color::AnsiValue(176),
+    Color::AnsiValue(30),
+    Color::AnsiValue(210),
+    Color::AnsiValue(170),
+    Color::AnsiValue(140),
+    Color::AnsiValue(138),
+    Color::AnsiValue(134),
+    Color::AnsiValue(168),
+    Color::AnsiValue(68),
+    Color::AnsiValue(98),
+    Color::AnsiValue(104),
+    Color::AnsiValue(60),
+    Color::AnsiValue(32),
+    Color::AnsiValue(212),
+    Color::AnsiValue(132),
+    Color::AnsiValue(204),
+    Color::AnsiValue(96),
+    Color::AnsiValue(66),
 ];
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -70,6 +87,7 @@ impl App {
     //          ^   app.offset_row
     //         ^  app.cursor_column
     //        ^ app.cursor_row
+    //       ^ app.is_visual
     pub fn get_change_flags(&mut self) -> Vec<Change> {
         let mut flags = Vec::new();
 
@@ -83,7 +101,7 @@ impl App {
     pub fn get_visual_bounds(&self) -> (usize, usize) {
         let mut tmp = [self.visual_start, self.visual_end];
         tmp.sort();
-        (tmp[0], tmp[1])
+        (tmp[0], tmp[1] + 1)
     }
 
     pub fn get_current_line(&self) -> &Line {
@@ -92,6 +110,10 @@ impl App {
 
     pub fn get_current_line_width(&mut self) -> usize {
         self.lines[self.cursor_row + self.offset_row].width
+    }
+
+    pub fn is_empty_visual(&self) -> bool {
+        self.visual_start == self.visual_end
     }
 
     pub fn tag(&mut self) {

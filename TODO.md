@@ -29,11 +29,12 @@ Tasks:
 + fix blinking (too much redraw? even on non-redrawing hl moves)
 + fix statusline redraw (lingering tags)
 + fix tag display across virtual rows
++ overlapping tags
 
-- overlapping tags
+- multiline tags
 - multiline visual
-- drop mode indicator from statusline (display visual instead of tag in visual)
 - multiline tagging
+- drop mode indicator from statusline (display visual instead of tag in visual)
 - finish refactoring (several impls, remaining methods)
 
 - terminal resize
