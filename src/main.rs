@@ -117,8 +117,8 @@ fn main() -> std::io::Result<()> {
                     'S' => common::handle_S(&mut app),
                     'E' => common::handle_E(&mut app),
 
-                    'w' => common::handle_w(&mut app, &mut stdout)?,
-                    'b' => common::handle_b(&mut app, &mut stdout)?,
+                    'w' => common::handle_w(&mut app),
+                    'b' => common::handle_b(&mut app),
 
                     't' => common::handle_t(&mut app, &mut stdout)?,
                     'u' => normal::handle_u(&mut app, &mut stdout)?,
@@ -128,7 +128,7 @@ fn main() -> std::io::Result<()> {
                 match keycode {
                     ':' => common::handle_colon(&mut app, &mut stdout)?,
                     'm' => common::handle_m(&mut app, &mut stdout)?,
-                    'v' => visual::handle_v(&mut app),
+                    'v' => app.visual_v(),
 
                     'h' => common::handle_h(&mut app),
                     'l' => common::handle_l(&mut app),

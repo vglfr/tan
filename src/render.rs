@@ -28,6 +28,7 @@ pub fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
             queue!(
                 stdout,
                 helper::move_to(0, line.virtual_row - app.offset_row),
+                style::SetBackgroundColor(Color::Reset),
                 style::SetForegroundColor(Color::DarkGrey),
                 style::Print("⤷ "),
             )?;
@@ -53,6 +54,15 @@ pub fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    // clear
+    queue!(
+        stdout,
+        helper::move_to(0, app.window_height - 1),
+        style::SetBackgroundColor(Color::Reset),
+        style::Print("                                                                                 "),
+    )?;
+
+    // mode
     let mode_color = match app.mode {
         Mode::Color => Color::Yellow,
         Mode::Command => Color::Red,
@@ -62,13 +72,6 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
         Mode::Visual => Color::Blue,
     };
 
-    let status = format!(
-        "{}% {}:{}",
-        (app.cursor_row + app.offset_row) / app.nlines,
-        app.cursor_row + app.offset_row,
-        app.cursor_column,
-    );
-    
     queue!(
         stdout,
         helper::move_to(0, app.window_height - 1),
@@ -76,8 +79,8 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
         style::Print("     "),
     )?;
 
+    // label
     let col = app.cursor_column;
-
     let label = app.get_current_line().tags.iter()
         .find(|x| x.start <= col && col < x.end)
         .map(|x| x.label);
@@ -97,6 +100,14 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
             style::Print(&app.labels[n].name),
         )?;
     }
+
+    // status
+    let status = format!(
+        "{}% {}:{}",
+        (app.cursor_row + app.offset_row) / app.nlines,
+        app.cursor_row + app.offset_row,
+        app.cursor_column,
+    );
 
     // queue!(
     //     stdout,

@@ -1,6 +1,8 @@
 use crate::app::App;
 
-pub fn handle_v(app: &mut App) {
-    app.set_normal_mode();
-    app.visual_end = app.cursor_column;
+impl App {
+    pub fn visual_v(&mut self) {
+        self.set_normal_mode();
+        self.visual_end = self.cursor_column;
+    }
 }

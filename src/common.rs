@@ -187,47 +187,54 @@ pub fn handle_l(app: &mut App) {
     // move_visual(app);
 }
 
-pub fn handle_w(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let current_column = app.cursor_column;
-    let mut line_iter = app.get_current_line().text.chars().skip(current_column + 1).peekable();
+pub fn handle_w(app: &mut App) {
+    let mut line_iter = app.get_current_line().text.chars().skip(app.cursor_column + 1).peekable();
 
     if let Some(next) = line_iter.peek() {
         let offset = if next.is_whitespace() {
-            line_iter.take_while(|x| x.is_whitespace()).collect::<Vec<_>>().len() + 1
+            line_iter.take_while(|x|  x.is_whitespace()).collect::<Vec<_>>().len() + 1
         } else {
             line_iter.take_while(|x| !x.is_whitespace()).collect::<Vec<_>>().len()
         };
 
-        app.cursor_column += offset;
+        app.cursor_column = std::cmp::min(app.cursor_column + offset, app.get_current_line_width() - 1);
+        app.change |= 0b0101;
 
-        move_visual(app);
-        render::render_offset(app, stdout)?;
-        render::render_status(app, stdout)
-    } else {
-        Ok(())
+        // move_visual(app);
+    } else if app.cursor_row < std::cmp::min(app.window_height - 2, app.nlines) {
+        app.cursor_row += 1;
+        app.cursor_column = 0;
+        app.change |= 0b1101;
+    } else if app.cursor_row + app.offset_row < app.nlines - 1 {
+        app.offset_row += 1;
+        app.cursor_column = 0;
+        app.change |= 0b0111;
     }
 }
 
-pub fn handle_b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let current_column = app.cursor_column;
+pub fn handle_b(app: &mut App) {
     let line = app.get_current_line();
-
-    let mut line_iter = line.text.chars().rev().skip(line.width - current_column).peekable();
+    let mut line_iter = line.text.chars().rev().skip(line.width - app.cursor_column).peekable();
 
     if let Some(next) = line_iter.peek() {
         let offset = if next.is_whitespace() {
-            line_iter.take_while(|x| x.is_whitespace()).collect::<Vec<_>>().len() + 1
+            line_iter.take_while(|x|  x.is_whitespace()).collect::<Vec<_>>().len() + 1
         } else {
             line_iter.take_while(|x| !x.is_whitespace()).collect::<Vec<_>>().len()
         };
 
         app.cursor_column -= offset;
+        app.change |= 0b0101;
 
-        move_visual(app);
-        render::render_offset(app, stdout)?;
-        render::render_status(app, stdout)
-    } else {
-        Ok(())
+        // move_visual(app);
+    } else if app.cursor_row > 0 {
+        app.cursor_row = app.cursor_row.saturating_sub(1);
+        app.cursor_column = app.get_current_line_width().saturating_sub(1);
+        app.change |= 0b1101;
+    } else if app.offset_row > 0 {
+        app.offset_row = app.offset_row.saturating_sub(1);
+        app.cursor_column = app.get_current_line_width().saturating_sub(1);
+        app.change |= 0b0111;
     }
 }
 
@@ -293,8 +300,8 @@ fn move_to_line_end(app: &mut App) {
     }
 }
 
-fn move_visual(app: &mut App) {
-    if app.is_visual() && app.cursor_row + app.offset_row == app.visual_row {
-        app.visual_end = app.cursor_column;
-    }
-}
+// fn move_visual(app: &mut App) {
+//     if app.is_visual() && app.cursor_row + app.offset_row == app.visual_row {
+//         app.visual_end = app.cursor_column;
+//     }
+// }
