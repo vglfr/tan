@@ -6,7 +6,6 @@ use crossterm::{
     queue,
     style::{self, Color},
 };
-use rand::seq::SliceRandom;
 
 use crate::{app::{self, App, Label}, color, helper, render};
 
@@ -25,11 +24,12 @@ pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     if app.labels.len() < 24 {
         let label = Label {
             name: "new_label".to_owned(),
-            color: *app::COLORS.choose(&mut app.rng).unwrap(),
+            color: app::COLORS[app.rng],
             is_active: false,
             is_visible: true,
         };
 
+        app.rng = (app.rng + 1) % app::COLORS.len();
         app.labels.push(label);
         render_modal(app, stdout)
     } else {

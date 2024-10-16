@@ -1,6 +1,5 @@
 use clap::ValueEnum;
 use crossterm::{style::Color, terminal::WindowSize};
-use rand::rngs::ThreadRng;
 use serde::{Deserialize, Serialize};
 
 pub const COLORS: [Color; 7] = [
@@ -31,7 +30,7 @@ pub struct App {
     pub nlines: usize,
     pub offset_row: usize,
     #[serde(skip)]
-    pub rng: ThreadRng,
+    pub rng: usize,
     pub visual_row: usize,
     pub visual_start: usize,
     pub visual_end: usize,
@@ -40,7 +39,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(filename: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize, rng: ThreadRng) -> App {
+    pub fn new(filename: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize) -> App {
         App {
             filename: filename.to_owned(),
             change: 0,
@@ -57,7 +56,7 @@ impl App {
             modal_start_row: 0,
             mode: Mode::Normal,
             offset_row: 0,
-            rng,
+            rng: 0,
             visual_row: 0,
             visual_start: 0,
             visual_end: 0,

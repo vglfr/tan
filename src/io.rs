@@ -31,6 +31,7 @@ struct Ent {
 type Accumulator = (Vec<Line>, usize, usize);
 type Enumerate = (usize, String);
 
+#[allow(private_interfaces)]
 pub fn load_file(argv: &Argv) -> std::io::Result<App> {
     match argv.format {
         FType::Raw => load_raw(&argv.name),
@@ -40,7 +41,6 @@ pub fn load_file(argv: &Argv) -> std::io::Result<App> {
 }
 
 fn load_raw(filename: &str) -> std::io::Result<App> {
-    let rng = rand::thread_rng();
     let window = terminal::window_size()?;
     
     let lines = read_raw(filename).unwrap()
@@ -50,11 +50,10 @@ fn load_raw(filename: &str) -> std::io::Result<App> {
         .0;
     let labels = vec![Label { name: "label1".to_owned(), color: Color::Red, is_active: true, is_visible: true }];
 
-    Ok(App::new(filename, lines, labels, window, rng))
+    Ok(App::new(filename, lines, labels, window))
 }
 
 fn load_spacy(filename: &str) -> std::io::Result<App> {
-    let rng = rand::thread_rng();
     let window = terminal::window_size()?;
 
     let (text, ents, labels) = read_spacy(filename)?;
@@ -65,7 +64,7 @@ fn load_spacy(filename: &str) -> std::io::Result<App> {
         .0;
     let lines = assign_labels(bare_lines, &ents, &labels);
 
-    Ok(App::new(filename, lines, labels, window, rng))
+    Ok(App::new(filename, lines, labels, window))
 }
 
 fn load_tan(filename: &str) -> std::io::Result<App> {
@@ -152,7 +151,7 @@ fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> 
         } else {
             lines[n-1].tags.push(Tag {
                 start,
-                end: 0,
+                end: w,
                 label: labels.iter().position(|x| x.name == ent.label).unwrap(),
             });
 

@@ -64,12 +64,10 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
 
     // mode
     let mode_color = match app.mode {
-        Mode::Color => Color::Yellow,
-        Mode::Command => Color::Red,
-        Mode::Modal => Color::Yellow,
-        Mode::Name => Color::Red,
-        Mode::Normal => Color::White,
-        Mode::Visual => Color::Blue,
+        // Mode::Color => Color::Yellow,
+        // Mode::Name => Color::Red,
+        Mode::Visual => Color::Yellow,
+        _ => Color::Reset,
     };
 
     queue!(
@@ -108,13 +106,6 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
         app.cursor_row + app.offset_row,
         app.cursor_column,
     );
-
-    // queue!(
-    //     stdout,
-    //     cursor::MoveTo(8, app.window_height - 1),
-    //     style::SetBackgroundColor(Color::Reset),
-    //     style::Print(&app.fname),
-    // )?;
 
     queue!(
         stdout,

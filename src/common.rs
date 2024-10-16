@@ -183,8 +183,6 @@ pub fn handle_l(app: &mut App) {
         app.offset_row += 1;
         app.change |= 0b1011;
     }
-
-    // move_visual(app);
 }
 
 pub fn handle_w(app: &mut App) {
@@ -299,9 +297,3 @@ fn move_to_line_end(app: &mut App) {
         app.change |= 0b0100;
     }
 }
-
-// fn move_visual(app: &mut App) {
-//     if app.is_visual() && app.cursor_row + app.offset_row == app.visual_row {
-//         app.visual_end = app.cursor_column;
-//     }
-// }

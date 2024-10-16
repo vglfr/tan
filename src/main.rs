@@ -20,7 +20,7 @@ use app::{App, Change, FType, Mode};
 #[derive(Debug, Parser)]
 #[command(version)]
 struct Argv {
-    #[clap(default_value = "data/test2.json")]
+    #[clap(default_value = "data/test3.json")]
     name: String,
     #[clap(short, long, value_enum, default_value_t = FType::Spacy)]
     format: FType,
@@ -99,10 +99,10 @@ fn main() -> std::io::Result<()> {
                     'm' => common::handle_m(&mut app, &mut stdout)?,
                     'v' => app.normal_v(),
 
-                    'h' => common::handle_h(&mut app),
+                    'h' => app.normal_h(),
                     'j' => common::handle_j(&mut app),
                     'k' => common::handle_k(&mut app),
-                    'l' => common::handle_l(&mut app),
+                    'l' => app.normal_l(),
 
                     'H' => common::handle_H(&mut app),
                     'M' => common::handle_M(&mut app),
@@ -130,8 +130,8 @@ fn main() -> std::io::Result<()> {
                     'm' => common::handle_m(&mut app, &mut stdout)?,
                     'v' => app.visual_v(),
 
-                    'h' => common::handle_h(&mut app),
-                    'l' => common::handle_l(&mut app),
+                    'h' => app.visual_h(),
+                    'l' => app.visual_l(),
 
                     't' => common::handle_t(&mut app, &mut stdout)?,
                     _ => (),
