@@ -2,7 +2,7 @@ use std::io::Stdout;
 
 use crossterm::{cursor, execute};
 
-use crate::{app::App, command, modal, render};
+use crate::{app::App, modal, render};
 
 #[allow(non_snake_case)]
 pub fn handle_E(app: &mut App) {

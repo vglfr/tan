@@ -30,8 +30,8 @@ Tasks:
 + fix statusline redraw (lingering tags)
 + fix tag display across virtual rows
 + overlapping tags
++ multiline tags
 
-- multiline tags
 - multiline visual
 - multiline tagging
 - drop mode indicator from statusline (display visual instead of tag in visual)

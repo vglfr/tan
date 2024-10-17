@@ -147,18 +147,24 @@ fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> 
                 start,
                 end,
                 label: labels.iter().position(|x| x.name == ent.label).unwrap(),
+                has_line_prev: false,
+                has_line_next: false,
             });
         } else {
             lines[n-1].tags.push(Tag {
                 start,
                 end: w,
                 label: labels.iter().position(|x| x.name == ent.label).unwrap(),
+                has_line_prev: false,
+                has_line_next: true,
             });
 
             lines[n].tags.push(Tag {
                 start: 0,
                 end,
                 label: labels.iter().position(|x| x.name == ent.label).unwrap(),
+                has_line_prev: true,
+                has_line_next: false,
             });
         }
     }

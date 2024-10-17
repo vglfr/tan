@@ -121,7 +121,7 @@ fn main() -> std::io::Result<()> {
                     'b' => common::handle_b(&mut app),
 
                     't' => common::handle_t(&mut app, &mut stdout)?,
-                    'u' => normal::handle_u(&mut app, &mut stdout)?,
+                    'u' => app.normal_u(),
                     _ => (),
                 },
             Mode::Visual =>

@@ -1,6 +1,4 @@
-use std::io::Stdout;
-
-use crate::{app::{App, Mode}, common, render};
+use crate::{app::{App, Mode}, common};
 
 impl App {
     pub fn is_normal(&self) -> bool {
@@ -28,9 +26,9 @@ impl App {
 
         self.change = 0b0001;
     }
-}
 
-pub fn handle_u(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.untag();
-    render::render_offset(app, stdout)
+    pub fn normal_u(&mut self) {
+        self.untag();
+        self.change = 0b0011;
+    }
 }

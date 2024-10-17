@@ -121,16 +121,30 @@ impl App {
 
         if s != e {
             self.lines[self.cursor_row + self.offset_row].tags.push(
-                Tag { start: s, end: e, label: self.modal_active}
+                Tag { start: s, end: e, label: self.modal_active, has_line_next: false, has_line_prev: false }
             );
         }
     }
 
     pub fn untag(&mut self) {
-        let tags = self.lines[self.cursor_row].tags.clone();
-        self.lines[self.cursor_row + self.offset_row].tags = tags.into_iter().filter(
-            |x| !(x.start <= self.cursor_column && self.cursor_column < x.end)
-        ).collect();
+        let tag = self.get_current_line().tags.iter()
+            .find(|x| x.start <= self.cursor_column && self.cursor_column < x.end)
+            .unwrap();
+
+        if tag.has_line_prev {
+            self.lines[self.cursor_row + self.offset_row - 1].tags.pop();
+            self.lines[self.cursor_row + self.offset_row].tags.remove(0);
+        } else if tag.has_line_next {
+            self.lines[self.cursor_row + self.offset_row].tags.pop();
+            self.lines[self.cursor_row + self.offset_row + 1].tags.remove(0);
+        } else {
+            let tags = self.get_current_line().tags.clone();
+            self.lines[self.cursor_row + self.offset_row].tags = tags.into_iter()
+                .filter(|x| !(x == tag))
+                .collect();
+        }
+
+        // handle overlapping untag
     }
 
     pub fn is_modal(&self) -> bool {
@@ -202,9 +216,11 @@ pub enum Mode {
     Visual,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Tag {
     pub start: usize,
     pub end: usize,
     pub label: usize,
+    pub has_line_prev: bool,
+    pub has_line_next: bool,
 }
