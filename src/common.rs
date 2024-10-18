@@ -4,6 +4,13 @@ use crossterm::{cursor, execute};
 
 use crate::{app::App, modal, render};
 
+impl App {
+    pub fn common_colon(&mut self) {
+        self.set_command_mode();
+        self.change |= 0b0001;
+    }
+}
+
 #[allow(non_snake_case)]
 pub fn handle_E(app: &mut App) {
     let cursor_column = app.lines[app.nlines.saturating_sub(1)].width.saturating_sub(1);
@@ -108,11 +115,6 @@ pub fn handle_pg_up(app: &mut App) {
     }
 
     manage_vertical_drift(app);
-}
-
-pub fn handle_colon(app: &mut App) {
-    app.set_command_mode();
-    app.change |= 0b0001;
 }
 
 pub fn handle_h(app: &mut App) {
@@ -252,15 +254,12 @@ pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     modal::render_modal(app, stdout)
 }
 
-pub fn handle_t(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_t(app: &mut App) {
     app.tag();
     app.set_normal_mode();
 
     app.visual_start = app.cursor_column;
     app.visual_end = app.visual_start;
-
-    render::render_offset(app, stdout)?;
-    render::render_status(app, stdout)
 }
 
 pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {

@@ -49,11 +49,11 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Command =>
                 match keycode {
-                    c@'!'..='~' => command::handle_key(c, &mut app, &mut stdout)?,
-                    '\x08' => command::handle_08(&mut app, &mut stdout)?,
+                    c@'!'..='~' => app.command_char(c),
+                    '\x08' => app.command_backspace(),
 
                     '\x0a' => command::handle_0a(&mut app, &mut stdout)?,
-                    '\x1b' => command::handle_1b(&mut app, &mut stdout)?,
+                    '\x1b' => app.command_esc(),
 
                     // 'c-u' => (),
                     // 'c-w' => (),
@@ -62,8 +62,7 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Modal =>
                 match keycode {
-                    // ':' => app.set_command_mode(),
-                    ':' => common::handle_colon(&mut app),
+                    // ':' => app.common_colon(),
                     'm' => modal::handle_m(&mut app, &mut stdout)?,
 
                     'a' => modal::handle_a(&mut app, &mut stdout)?,
@@ -95,7 +94,7 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Normal =>
                 match keycode {
-                    ':' => common::handle_colon(&mut app),
+                    ':' => app.common_colon(),
                     'm' => common::handle_m(&mut app, &mut stdout)?,
                     'v' => app.normal_v(),
 
@@ -117,23 +116,26 @@ fn main() -> std::io::Result<()> {
                     'S' => common::handle_S(&mut app),
                     'E' => common::handle_E(&mut app),
 
-                    'w' => common::handle_w(&mut app),
-                    'b' => common::handle_b(&mut app),
+                    'w' => app.normal_w(),
+                    'b' => app.normal_b(),
 
-                    't' => common::handle_t(&mut app, &mut stdout)?,
+                    't' => common::handle_t(&mut app),
                     'u' => app.normal_u(),
                     _ => (),
                 },
             Mode::Visual =>
                 match keycode {
-                    ':' => common::handle_colon(&mut app),
+                    ':' => app.common_colon(),
                     'm' => common::handle_m(&mut app, &mut stdout)?,
                     'v' => app.visual_v(),
 
                     'h' => app.visual_h(),
                     'l' => app.visual_l(),
 
-                    't' => common::handle_t(&mut app, &mut stdout)?,
+                    'w' => app.visual_w(),
+                    'b' => app.visual_b(),
+
+                    't' => common::handle_t(&mut app),
                     _ => (),
                 },
         }

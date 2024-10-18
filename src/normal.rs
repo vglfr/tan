@@ -1,7 +1,7 @@
 use crate::{app::{App, Mode}, common};
 
 impl App {
-    pub fn is_normal(&self) -> bool {
+    pub fn is_normal_mode(&self) -> bool {
         self.mode == Mode::Normal
     }
 
@@ -17,6 +17,14 @@ impl App {
         common::handle_l(self);
     }
 
+    pub fn normal_w(&mut self) {
+        common::handle_w(self);
+    }
+
+    pub fn normal_b(&mut self) {
+        common::handle_b(self);
+    }
+
     pub fn normal_v(&mut self) {
         self.set_visual_mode();
 
@@ -29,6 +37,5 @@ impl App {
 
     pub fn normal_u(&mut self) {
         self.untag();
-        self.change = 0b0011;
     }
 }

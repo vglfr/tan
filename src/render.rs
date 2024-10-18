@@ -62,59 +62,76 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
         style::Print("                                                                                 "),
     )?;
 
-    // mode
-    let mode_color = match app.mode {
-        // Mode::Color => Color::Yellow,
-        // Mode::Name => Color::Red,
-        Mode::Visual => Color::Yellow,
-        _ => Color::Reset,
-    };
-
-    queue!(
-        stdout,
-        helper::move_to(0, app.window_height - 1),
-        style::SetBackgroundColor(mode_color),
-        style::Print("     "),
-    )?;
-
-    // label
-    let col = app.cursor_column;
-    let label = app.get_current_line().tags.iter()
-        .find(|x| x.start <= col && col < x.end)
-        .map(|x| x.label);
-
-    if let Some(n) = label {
+    if app.is_command_mode() {
         queue!(
             stdout,
-            helper::move_to(8, app.window_height - 1),
-            style::SetBackgroundColor(app.labels[n].color),
-            style::Print("      "),
-        )?;
-
-        queue!(
-            stdout,
-            helper::move_to(16, app.window_height - 1),
+            helper::move_to(0, app.window_height - 1),
             style::SetBackgroundColor(Color::Reset),
-            style::Print(&app.labels[n].name),
+            style::Print(":"),
         )?;
+
+        queue!(
+            stdout,
+            helper::move_to(1, app.window_height - 1),
+            style::SetBackgroundColor(Color::Reset),
+            style::Print(&app.command),
+        )?;
+    } else {
+        // mode
+        let mode_color = match app.mode {
+            // Mode::Color => Color::Yellow,
+            // Mode::Name => Color::Red,
+            Mode::Visual => Color::Yellow,
+            _ => Color::Reset,
+        };
+
+        queue!(
+            stdout,
+            helper::move_to(0, app.window_height - 1),
+            style::SetBackgroundColor(mode_color),
+            style::Print("     "),
+        )?;
+
+        // label
+        let col = app.cursor_column;
+        let label = app.get_current_line().tags.iter()
+            .find(|x| x.start <= col && col < x.end)
+            .map(|x| x.label);
+
+        if let Some(n) = label {
+            queue!(
+                stdout,
+                helper::move_to(8, app.window_height - 1),
+                style::SetBackgroundColor(app.labels[n].color),
+                style::Print("      "),
+            )?;
+
+            queue!(
+                stdout,
+                helper::move_to(16, app.window_height - 1),
+                style::SetBackgroundColor(Color::Reset),
+                style::Print(&app.labels[n].name),
+            )?;
+        }
+
+        // status
+        let status = format!(
+            "{}% {}:{}",
+            (app.cursor_row + app.offset_row) / app.nlines,
+            app.cursor_row + app.offset_row,
+            app.cursor_column,
+        );
+
+        queue!(
+            stdout,
+            helper::move_to(70, app.window_height - 1),
+            style::SetBackgroundColor(Color::Reset),
+            style::Print(status),
+        )?;
+
+        queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row))?;
     }
 
-    // status
-    let status = format!(
-        "{}% {}:{}",
-        (app.cursor_row + app.offset_row) / app.nlines,
-        app.cursor_row + app.offset_row,
-        app.cursor_column,
-    );
-
-    queue!(
-        stdout,
-        helper::move_to(70, app.window_height - 1),
-        style::SetBackgroundColor(Color::Reset),
-        style::Print(status),
-    )?;
-
-    queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row))?;
     stdout.flush()
 }
 

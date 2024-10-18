@@ -31,10 +31,10 @@ Tasks:
 + fix tag display across virtual rows
 + overlapping tags
 + multiline tags
++ drop mode indicator from statusline (display visual instead of tag in visual)
 
 - multiline visual
 - multiline tagging
-- drop mode indicator from statusline (display visual instead of tag in visual)
 - finish refactoring (several impls, remaining methods)
 
 - terminal resize

@@ -119,56 +119,47 @@ impl App {
     pub fn tag(&mut self) {
         let (s,e) = self.get_visual_bounds();
 
-        if s != e {
+        if e - s > 1 {
             self.lines[self.cursor_row + self.offset_row].tags.push(
                 Tag { start: s, end: e, label: self.modal_active, has_line_next: false, has_line_prev: false }
             );
+            self.change = 0b0011;
         }
     }
 
     pub fn untag(&mut self) {
-        let tag = self.get_current_line().tags.iter()
-            .find(|x| x.start <= self.cursor_column && self.cursor_column < x.end)
-            .unwrap();
+        let tag_maybe = self.get_current_line().tags.iter()
+            .find(|x| x.start <= self.cursor_column && self.cursor_column < x.end);
 
-        if tag.has_line_prev {
-            self.lines[self.cursor_row + self.offset_row - 1].tags.pop();
-            self.lines[self.cursor_row + self.offset_row].tags.remove(0);
-        } else if tag.has_line_next {
-            self.lines[self.cursor_row + self.offset_row].tags.pop();
-            self.lines[self.cursor_row + self.offset_row + 1].tags.remove(0);
-        } else {
-            let tags = self.get_current_line().tags.clone();
-            self.lines[self.cursor_row + self.offset_row].tags = tags.into_iter()
-                .filter(|x| !(x == tag))
-                .collect();
+        if let Some(tag) = tag_maybe {
+            if tag.has_line_prev {
+                self.lines[self.cursor_row + self.offset_row - 1].tags.pop();
+                self.lines[self.cursor_row + self.offset_row].tags.remove(0);
+            } else if tag.has_line_next {
+                self.lines[self.cursor_row + self.offset_row].tags.pop();
+                self.lines[self.cursor_row + self.offset_row + 1].tags.remove(0);
+            } else {
+                let tags = self.get_current_line().tags.clone();
+                self.lines[self.cursor_row + self.offset_row].tags = tags.into_iter()
+                    .filter(|x| !(x == tag))
+                    .collect();
+            }
+            self.change = 0b0011;
         }
 
         // handle overlapping untag
     }
 
-    pub fn is_modal(&self) -> bool {
+    pub fn is_modal_mode(&self) -> bool {
         self.mode == Mode::Modal
-    }
-
-    pub fn is_visual(&self) -> bool {
-        self.mode == Mode::Visual
     }
 
     pub fn set_color_mode(&mut self) {
         self.mode = Mode::Color;
     }
 
-    pub fn set_command_mode(&mut self) {
-        self.mode = Mode::Command;
-    }
-
     pub fn set_modal_mode(&mut self) {
         self.mode = Mode::Modal;
-    }
-
-    pub fn set_visual_mode(&mut self) {
-        self.mode = Mode::Visual;
     }
 }
 

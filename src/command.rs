@@ -1,61 +1,45 @@
 use std::io::{Stdout, Write};
 
-use crossterm::{cursor, queue, style::{self, Color}, terminal};
+use crossterm::{cursor, queue, terminal};
 
-use crate::{app::App, helper, io, render};
+use crate::{app::{App, Mode}, io};
 
-pub fn handle_key(c: char, app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.command.push(c);
-    render_command(app, stdout)?;
-    Ok(())
-}
-
-pub fn handle_08(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    if !app.command.is_empty() {
-        app.command.pop();
-        render_command(app, stdout)?;
+impl App {
+    pub fn is_command_mode(&self) -> bool {
+        self.mode == Mode::Command
     }
-    Ok(())
+
+    pub fn set_command_mode(&mut self) {
+        self.mode = Mode::Command;
+    }
+
+    pub fn command_char(&mut self, c: char) {
+        self.command.push(c);
+        self.change |= 0b0001;
+    }
+
+    pub fn command_backspace(&mut self) {
+        if !self.command.is_empty() {
+            self.command.pop();
+            self.change |= 0b0001;
+        }
+    }
+
+    pub fn command_esc(&mut self) {
+        self.command.clear();
+        self.set_normal_mode();
+        self.change |= 0b0001;
+    }
 }
 
 pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    app.change |= 0b0001;
     match app.command.as_str() {
         "q" | "quit" => execute_exit(stdout),
-        "w" | "write" => execute_write(app, stdout),
-        "d" | "debug" => execute_debug(app, stdout),
+        "w" | "write" => execute_write(app),
+        "d" | "debug" => execute_debug(app),
         _ => Ok(()),
     }
-}
-
-pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.command.clear();
-    app.set_normal_mode();
-    render::render_status(app, stdout)
-}
-
-pub fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    queue!(
-        stdout,
-        helper::move_to(0, app.window_height - 1),
-        style::SetBackgroundColor(Color::Reset),
-        style::Print("                                                                        "),
-    )?;
-
-    queue!(
-        stdout,
-        helper::move_to(0, app.window_height - 1),
-        style::SetBackgroundColor(Color::Reset),
-        style::Print(":"),
-    )?;
-
-    queue!(
-        stdout,
-        helper::move_to(1, app.window_height - 1),
-        style::SetBackgroundColor(Color::Reset),
-        style::Print(&app.command),
-    )?;
-
-    stdout.flush()
 }
 
 #[allow(unreachable_code)]
@@ -70,18 +54,14 @@ fn execute_exit(stdout: &mut Stdout) -> std::io::Result<()> {
     Ok(())
 }
 
-fn execute_write(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn execute_write(app: &mut App) -> std::io::Result<()> {
     app.command.clear();
     app.set_normal_mode();
-
-    io::save_tan(app)?;
-    render::render_status(app, stdout)
+    io::save_tan(app)
 }
 
-fn execute_debug(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn execute_debug(app: &mut App) -> std::io::Result<()> {
     app.command.clear();
     app.set_normal_mode();
-
-    io::dump_debug(app)?;
-    render::render_status(app, stdout)
+    io::dump_debug(app)
 }
