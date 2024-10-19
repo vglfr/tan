@@ -129,47 +129,96 @@ fn virtualize_line(acc: Accumulator, item: Enumerate) -> Accumulator {
 
 fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> Vec<Line> {
     for ent in ents {
-        let tmp = lines.iter().position(|x| x.absolute_offset > ent.start);
-        if tmp.is_none() {
-            dbg!(&ent);
-            dbg!(&lines[..8]);
-        }
-        let n = tmp.unwrap();
+        let label = labels.iter().position(|x| x.name == ent.label).unwrap();
 
-        let o = lines[n-1].absolute_offset;
-        let w = lines[n-1].width;
+        let intervals = lines.iter().enumerate()
+            .filter(|(_,x)| {
+                let tag = (ent.start, ent.end);
+                let line = (x.absolute_offset, x.absolute_offset + x.width);
+                has_interval_overlap(tag, line)
+            })
+            .map(|(i,x)| {
+                let tag = (ent.start, ent.end);
+                let line = (x.absolute_offset, x.width);
 
-        let start = (ent.start - o) % w;
-        let end = (ent.end - o) % w;
+                let bounds = calculate_tag_bounds(tag, line);
+                (i, bounds)
+            })
+            .collect::<Vec<(usize,Pair)>>();
 
-        if start < end || end == 0 {
-            lines[n-1].tags.push(Tag {
-                start,
-                end,
-                label: labels.iter().position(|x| x.name == ent.label).unwrap(),
-                has_line_prev: false,
-                has_line_next: false,
-            });
-        } else {
-            lines[n-1].tags.push(Tag {
-                start,
-                end: w,
-                label: labels.iter().position(|x| x.name == ent.label).unwrap(),
-                has_line_prev: false,
-                has_line_next: true,
-            });
-
-            lines[n].tags.push(Tag {
-                start: 0,
-                end,
-                label: labels.iter().position(|x| x.name == ent.label).unwrap(),
-                has_line_prev: true,
-                has_line_next: false,
-            });
+        for (i,(n,(start,end))) in intervals.iter().enumerate() {
+            let tag = Tag {
+                start: *start,
+                end: *end,
+                label,
+                has_line_prev: i != 0,
+                has_line_next: i != intervals.len() - 1,
+            };
+            lines[*n].tags.push(tag);
         }
     }
 
     lines
+}
+
+type Pair = (usize, usize);
+
+fn has_interval_overlap(tag: Pair, line: Pair) -> bool {
+    let (tag_start, tag_end) = tag;
+    let (line_start, line_end) = line;
+
+    (tag_end > line_start) ^ (tag_start > line_end)
+}
+
+fn calculate_tag_bounds(tag: Pair, line: Pair) -> Pair {
+    let (tag_start, tag_end) = tag;
+    let (line_offset, line_width) = line;
+
+    let left = line_offset + line_width - tag_start;
+    let right = (line_offset + line_width).saturating_sub(tag_end);
+
+    (line_width.saturating_sub(left), line_width - right)
+}
+
+// t      ---
+// l     -----
+//      s2 s1 e1 e2
+
+// t     -----
+// l      ---
+//      s1 s2 e2 e1
+
+// t     -----
+// l        ---
+//      s1 s2 e1 e2
+
+// t     -----
+// l   ---
+//      s2 s1 e2 e1
+
+// t       -----
+// l   ---
+//      s2 e2 s1 e1
+
+// t  -----
+// l        ---
+//      s1 e1 s2 e2
+#[test]
+fn test_has_interval_overlap() {
+    assert!(has_interval_overlap((11,13), (10,14)) == true);
+    assert!(has_interval_overlap((10,14), (11,13)) == true);
+    assert!(has_interval_overlap((10,12), (11,14)) == true);
+    assert!(has_interval_overlap((11,13), (10,12)) == true);
+    assert!(has_interval_overlap((13,15), (10,12)) == false);
+    assert!(has_interval_overlap((10,12), (13,15)) == false);
+}
+
+#[test]
+fn test_calculate_tag_bounds() {
+    assert!(calculate_tag_bounds((100,120), (80,80)) == (20,40));
+    assert!(calculate_tag_bounds(( 60,180), (80,80)) == ( 0,80));
+    assert!(calculate_tag_bounds(( 60,120), (80,80)) == ( 0,40));
+    assert!(calculate_tag_bounds((100,180), (80,80)) == (20,80));
 }
 
 fn parse_labels(ents: &Vec<Ent>) -> Vec<Label> {

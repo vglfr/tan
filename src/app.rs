@@ -46,14 +46,20 @@ pub struct App {
     pub mode: Mode,
     pub nlines: usize,
     pub offset_row: usize,
-    #[serde(skip)]
     pub rng: usize,
+    // pub visual: Vec<Visual>,
     pub visual_row: usize,
     pub visual_start: usize,
     pub visual_end: usize,
     pub window_height: usize,
     pub window_width: usize,
 }
+
+// pub struct Visual {
+//     row: usize,
+//     start: usize,
+//     end: usize,
+// }
 
 impl App {
     pub fn new(filename: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize) -> App {
@@ -132,22 +138,27 @@ impl App {
             .find(|x| x.start <= self.cursor_column && self.cursor_column < x.end);
 
         if let Some(tag) = tag_maybe {
-            if tag.has_line_prev {
-                self.lines[self.cursor_row + self.offset_row - 1].tags.pop();
-                self.lines[self.cursor_row + self.offset_row].tags.remove(0);
-            } else if tag.has_line_next {
-                self.lines[self.cursor_row + self.offset_row].tags.pop();
-                self.lines[self.cursor_row + self.offset_row + 1].tags.remove(0);
-            } else {
-                let tags = self.get_current_line().tags.clone();
-                self.lines[self.cursor_row + self.offset_row].tags = tags.into_iter()
-                    .filter(|x| !(x == tag))
-                    .collect();
-            }
+            self.untag_recursive(tag.clone(), self.get_current_line().absolute_row);
             self.change = 0b0011;
         }
 
         // handle overlapping untag
+    }
+
+    fn untag_recursive(&mut self, tag: Tag, row: usize, how: From) {
+        let tags = self.lines[row].tags.clone();
+
+        self.lines[row].tags = tags.into_iter()
+            .filter(|x| !(*x == tag))
+            .collect();
+
+        if tag.has_line_prev {
+            self.untag_recursive(self.lines[row - 1].tags.last().unwrap().clone(), row - 1);
+        }
+
+        if tag.has_line_next {
+            self.untag_recursive(self.lines[row + 1].tags.first().unwrap().clone(), row + 1);
+        }
     }
 
     pub fn is_modal_mode(&self) -> bool {
@@ -162,6 +173,12 @@ impl App {
         self.mode = Mode::Modal;
     }
 }
+
+    enum From {
+        Left,
+        Middle,
+        Right,
+    }
 
 #[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum FType {

@@ -54,7 +54,6 @@ pub fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
 }
 
 pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    // clear
     queue!(
         stdout,
         helper::move_to(0, app.window_height - 1),
@@ -77,7 +76,6 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
             style::Print(&app.command),
         )?;
     } else {
-        // mode
         let mode_color = match app.mode {
             // Mode::Color => Color::Yellow,
             // Mode::Name => Color::Red,

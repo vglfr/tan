@@ -130,8 +130,6 @@ pub fn handle_h(app: &mut App) {
         app.change |= 0b0011;
         move_to_line_end(app);
     }
-
-    // move_visual(app);
 }
 
 pub fn handle_j(app: &mut App) {
@@ -199,8 +197,6 @@ pub fn handle_w(app: &mut App) {
 
         app.cursor_column = std::cmp::min(app.cursor_column + offset, app.get_current_line_width() - 1);
         app.change |= 0b0101;
-
-        // move_visual(app);
     } else if app.cursor_row < std::cmp::min(app.window_height - 2, app.nlines) {
         app.cursor_row += 1;
         app.cursor_column = 0;
@@ -225,8 +221,6 @@ pub fn handle_b(app: &mut App) {
 
         app.cursor_column -= offset;
         app.change |= 0b0101;
-
-        // move_visual(app);
     } else if app.cursor_row > 0 {
         app.cursor_row = app.cursor_row.saturating_sub(1);
         app.cursor_column = app.get_current_line_width().saturating_sub(1);
