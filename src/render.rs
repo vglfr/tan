@@ -137,7 +137,7 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     let mut points = vec![0, line.width];
     let (visual_start, visual_end) = app.get_visual_bounds();
 
-    if !app.is_empty_visual() && app.visual_row == line.virtual_row {
+    if !app.is_empty_visual() && app.visual[0].row == line.virtual_row {
         points.extend([visual_start, visual_end]);
     }
 
@@ -156,7 +156,7 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
                 .collect::<Vec<usize>>();
 
             let color =
-                if !app.is_empty_visual() && app.visual_row == line.virtual_row && visual_start <= s && *e <= visual_end {
+                if !app.is_empty_visual() && app.visual[0].row == line.virtual_row && visual_start <= s && *e <= visual_end {
                     Color::AnsiValue(172)
                 } else if tags.len() > 1 {
                     Color::AnsiValue(160)
@@ -170,22 +170,6 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
             Chunk { start: s, end: *e, color }
         })
         .collect();
-
-    // if line.virtual_row == 0 {
-    //     let mut f = File::create("/tmp/dbg.line.txt").unwrap();
-
-    //     f.write_all("line = ".as_bytes()).unwrap();
-    //     f.write_all(serde_json::to_string(&line).unwrap().as_bytes()).unwrap();
-    //     f.write_all("\n".as_bytes()).unwrap();
-
-    //     f.write_all("chunks = ".as_bytes()).unwrap();
-    //     f.write_all(serde_json::to_string(&chunks).unwrap().as_bytes()).unwrap();
-    //     f.write_all("\n".as_bytes()).unwrap();
-
-    //     f.write_all("points = ".as_bytes()).unwrap();
-    //     f.write_all(serde_json::to_string(&points).unwrap().as_bytes()).unwrap();
-    //     f.write_all("\n".as_bytes()).unwrap();
-    // }
 
     chunks
 }

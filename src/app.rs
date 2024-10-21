@@ -47,19 +47,10 @@ pub struct App {
     pub nlines: usize,
     pub offset_row: usize,
     pub rng: usize,
-    // pub visual: Vec<Visual>,
-    pub visual_row: usize,
-    pub visual_start: usize,
-    pub visual_end: usize,
+    pub visual: Vec<Visual>,
     pub window_height: usize,
     pub window_width: usize,
 }
-
-// pub struct Visual {
-//     row: usize,
-//     start: usize,
-//     end: usize,
-// }
 
 impl App {
     pub fn new(filename: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize) -> App {
@@ -80,9 +71,7 @@ impl App {
             mode: Mode::Normal,
             offset_row: 0,
             rng: 0,
-            visual_row: 0,
-            visual_start: 0,
-            visual_end: 0,
+            visual: Vec::new(),
             window_height: window.rows as usize,
             window_width: window.columns as usize,
         }
@@ -105,9 +94,13 @@ impl App {
     }
 
     pub fn get_visual_bounds(&self) -> (usize, usize) {
-        let mut tmp = [self.visual_start, self.visual_end];
-        tmp.sort();
-        (tmp[0], tmp[1] + 1)
+        if !self.is_empty_visual() {
+            let mut tmp = [self.visual[0].start, self.visual[0].end];
+            tmp.sort();
+            (tmp[0], tmp[1] + 1)
+        } else {
+            (0,0)
+        }
     }
 
     pub fn get_current_line(&self) -> &Line {
@@ -119,7 +112,7 @@ impl App {
     }
 
     pub fn is_empty_visual(&self) -> bool {
-        self.visual_start == self.visual_end
+        self.visual.is_empty()
     }
 
     pub fn tag(&mut self) {
@@ -131,6 +124,8 @@ impl App {
             );
             self.change = 0b0011;
         }
+
+        self.visual.clear();
     }
 
     pub fn untag(&mut self) {
@@ -226,4 +221,11 @@ pub struct Tag {
     pub label: usize,
     pub has_line_prev: bool,
     pub has_line_next: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Visual {
+    pub row: usize,
+    pub start: usize,
+    pub end: usize,
 }

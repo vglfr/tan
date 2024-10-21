@@ -11,7 +11,8 @@ impl App {
 
     pub fn visual_v(&mut self) {
         self.set_normal_mode();
-        self.visual_end = self.cursor_column;
+        self.visual[0].end = self.cursor_column;
+        // self.visual_end = self.cursor_column;
         self.change = 0b0001;
     }
 
@@ -41,7 +42,10 @@ impl App {
 }
 
 fn move_visual(app: &mut App) {
-    if app.cursor_row + app.offset_row == app.visual_row {
-        app.visual_end = app.cursor_column;
+    if app.cursor_row + app.offset_row == app.visual[0].row {
+        app.visual[0].end = app.cursor_column;
     }
+    // if app.cursor_row + app.offset_row == app.visual_row {
+    //     app.visual_end = app.cursor_column;
+    // }
 }

@@ -39,15 +39,18 @@ Tasks:
 - overlapping untag
 - finish refactoring (several impls, remaining methods)
 
+- Coralie demo
+
 - terminal resize
-- save spacy format (for QA)
 - error handling
-- debug logging
 - use mouse to set cursor position
 - use mouse for selection
 - use mouse wheel for scrolling
-- virtual column
-- helix-like select (when moving with wb)
+
+- save spacy format (for QA)
+- debug logging
+- virtual column (try to keep column position after newline)
 - docx export
+
 - redux overflow mode
 - toggle wrap/overflow mode

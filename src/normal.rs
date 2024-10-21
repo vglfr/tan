@@ -1,4 +1,4 @@
-use crate::{app::{App, Mode}, common};
+use crate::{app::{App, Mode, Visual}, common};
 
 impl App {
     pub fn is_normal_mode(&self) -> bool {
@@ -28,9 +28,16 @@ impl App {
     pub fn normal_v(&mut self) {
         self.set_visual_mode();
 
-        self.visual_row = self.cursor_row + self.offset_row;
-        self.visual_start = self.cursor_column;
-        self.visual_end = self.cursor_column;
+        let region = Visual {
+            start: self.cursor_column,
+            end: self.cursor_column,
+            row: self.cursor_row + self.offset_row,
+        };
+        self.visual.push(region);
+
+        // self.visual_row = self.cursor_row + self.offset_row;
+        // self.visual_start = self.cursor_column;
+        // self.visual_end = self.cursor_column;
 
         self.change = 0b0001;
     }

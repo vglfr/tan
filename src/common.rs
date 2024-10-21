@@ -252,8 +252,8 @@ pub fn handle_t(app: &mut App) {
     app.tag();
     app.set_normal_mode();
 
-    app.visual_start = app.cursor_column;
-    app.visual_end = app.visual_start;
+    // app.visual_start = app.cursor_column;
+    // app.visual_end = app.visual_start;
 }
 
 pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
