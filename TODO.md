@@ -42,6 +42,7 @@ Tasks:
 - Coralie demo
 
 - terminal resize
+- render line (visual hl move optimization)
 - error handling
 - use mouse to set cursor position
 - use mouse for selection

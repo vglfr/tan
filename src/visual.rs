@@ -1,4 +1,4 @@
-use crate::{app::{App, Mode}, common};
+use crate::{app::{App, Mode, Visual}, common};
 
 impl App {
     pub fn is_visual_mode(&self) -> bool {
@@ -9,43 +9,87 @@ impl App {
         self.mode = Mode::Visual;
     }
 
+    fn set_visual_end(&mut self) {
+        self.visual.iter_mut()
+            .find(|x| x.row == self.cursor_row + self.offset_row)
+            .map(|x| x.end = self.cursor_column);
+    }
+
     pub fn visual_v(&mut self) {
         self.set_normal_mode();
-        self.visual[0].end = self.cursor_column;
-        // self.visual_end = self.cursor_column;
+        self.set_visual_end();
         self.change = 0b0001;
     }
 
     pub fn visual_h(&mut self) {
         common::handle_h(self);
-        move_visual(self);
-        self.change = 0b0011; // todo render_line
+        self.set_visual_end();
+        self.change = 0b0010;
+    }
+
+    pub fn visual_j(&mut self) {
+        common::handle_j(self);
+
+        if self.change != 0 {
+            self.visual.iter_mut()
+                .find(|x| x.row == self.cursor_row + self.offset_row - 1)
+                .map(|x| x.end = self.lines[self.cursor_row + self.offset_row - 1].width - 1);
+
+            if let Some(region) = self.visual.iter_mut().find(|x| x.row == self.cursor_row + self.offset_row) {
+                region.end = self.cursor_column;
+                self.visual.remove(0);
+            } else {
+                let region = Visual {
+                    start: 0,
+                    end: self.cursor_column,
+                    row: self.cursor_row + self.offset_row,
+                };
+                self.visual.push(region);
+            }
+
+            self.change = 0b0010;
+        }
+    }
+
+    pub fn visual_k(&mut self) {
+        common::handle_k(self);
+
+        if self.change != 0 {
+            self.visual.iter_mut()
+                .find(|x| x.row == self.cursor_row + self.offset_row + 1)
+                .map(|x| x.end = 0);
+
+            if let Some(region) = self.visual.iter_mut().find(|x| x.row == self.cursor_row + self.offset_row) {
+                region.end = self.cursor_column;
+                self.visual.pop();
+            } else {
+                let region = Visual {
+                    start: self.get_current_line_width() - 1,
+                    end: self.cursor_column,
+                    row: self.cursor_row + self.offset_row,
+                };
+                self.visual.insert(0, region);
+            }
+
+            self.change = 0b0010;
+        }
     }
 
     pub fn visual_l(&mut self) {
         common::handle_l(self);
-        move_visual(self);
-        self.change = 0b0011;
+        self.set_visual_end();
+        self.change = 0b0010;
     }
 
     pub fn visual_w(&mut self) {
         common::handle_w(self);
-        move_visual(self);
-        self.change = 0b0011;
+        self.set_visual_end();
+        self.change = 0b0010;
     }
 
     pub fn visual_b(&mut self) {
         common::handle_b(self);
-        move_visual(self);
-        self.change = 0b0011;
+        self.set_visual_end();
+        self.change = 0b0010;
     }
-}
-
-fn move_visual(app: &mut App) {
-    if app.cursor_row + app.offset_row == app.visual[0].row {
-        app.visual[0].end = app.cursor_column;
-    }
-    // if app.cursor_row + app.offset_row == app.visual_row {
-    //     app.visual_end = app.cursor_column;
-    // }
 }

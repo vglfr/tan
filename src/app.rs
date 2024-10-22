@@ -93,35 +93,31 @@ impl App {
         flags
     }
 
-    pub fn get_visual_bounds(&self) -> (usize, usize) {
-        if !self.is_empty_visual() {
-            let mut tmp = [self.visual[0].start, self.visual[0].end];
-            tmp.sort();
-            (tmp[0], tmp[1] + 1)
-        } else {
-            (0,0)
-        }
+    pub fn get_visual_bounds(&self, row: usize) -> (usize, usize) {
+        self.visual.iter()
+            .find(|x| x.row == row)
+            .map(|x| {
+                let mut tmp = [x.start, x.end];
+                tmp.sort();
+                (tmp[0], tmp[1] + 1)
+            })
+            .unwrap_or((0,0))
     }
 
     pub fn get_current_line(&self) -> &Line {
         &self.lines[self.cursor_row + self.offset_row]
     }
 
-    pub fn get_current_line_width(&mut self) -> usize {
+    pub fn get_current_line_width(&self) -> usize {
         self.lines[self.cursor_row + self.offset_row].width
     }
 
-    pub fn is_empty_visual(&self) -> bool {
-        self.visual.is_empty()
-    }
-
     pub fn tag(&mut self) {
-        let (s,e) = self.get_visual_bounds();
+        let (s,e) = self.get_visual_bounds(self.cursor_row + self.offset_row);
 
         if e - s > 1 {
-            self.lines[self.cursor_row + self.offset_row].tags.push(
-                Tag { start: s, end: e, label: self.modal_active, has_line_next: false, has_line_prev: false }
-            );
+            let tag =  Tag { start: s, end: e, label: self.modal_active, has_line_next: false, has_line_prev: false };
+            self.lines[self.cursor_row + self.offset_row].tags.push(tag);
             self.change = 0b0011;
         }
 

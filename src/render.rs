@@ -135,11 +135,9 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
 
 fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
     let mut points = vec![0, line.width];
-    let (visual_start, visual_end) = app.get_visual_bounds();
 
-    if !app.is_empty_visual() && app.visual[0].row == line.virtual_row {
-        points.extend([visual_start, visual_end]);
-    }
+    let (visual_start,visual_end) = app.get_visual_bounds(line.virtual_row);
+    points.extend([visual_start, visual_end]);
 
     let tag_points = line.tags.iter().flat_map(|x| [x.start, x.end]);
     points.extend(tag_points);
@@ -156,7 +154,7 @@ fn chunk_line(line: &Line, app: &App) -> Vec<Chunk> {
                 .collect::<Vec<usize>>();
 
             let color =
-                if !app.is_empty_visual() && app.visual[0].row == line.virtual_row && visual_start <= s && *e <= visual_end {
+                if visual_start <= s && *e <= visual_end {
                     Color::AnsiValue(172)
                 } else if tags.len() > 1 {
                     Color::AnsiValue(160)

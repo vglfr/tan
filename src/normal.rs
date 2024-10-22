@@ -13,6 +13,14 @@ impl App {
         common::handle_h(self);
     }
 
+    pub fn normal_j(&mut self) {
+        common::handle_j(self);
+    }
+
+    pub fn normal_k(&mut self) {
+        common::handle_k(self);
+    }
+
     pub fn normal_l(&mut self) {
         common::handle_l(self);
     }
@@ -26,6 +34,7 @@ impl App {
     }
 
     pub fn normal_v(&mut self) {
+        self.visual.clear();
         self.set_visual_mode();
 
         let region = Visual {
@@ -34,10 +43,6 @@ impl App {
             row: self.cursor_row + self.offset_row,
         };
         self.visual.push(region);
-
-        // self.visual_row = self.cursor_row + self.offset_row;
-        // self.visual_start = self.cursor_column;
-        // self.visual_end = self.cursor_column;
 
         self.change = 0b0001;
     }

@@ -99,8 +99,8 @@ fn main() -> std::io::Result<()> {
                     'v' => app.normal_v(),
 
                     'h' => app.normal_h(),
-                    'j' => common::handle_j(&mut app),
-                    'k' => common::handle_k(&mut app),
+                    'j' => app.normal_j(),
+                    'k' => app.normal_k(),
                     'l' => app.normal_l(),
 
                     'H' => common::handle_H(&mut app),
@@ -130,6 +130,8 @@ fn main() -> std::io::Result<()> {
                     'v' => app.visual_v(),
 
                     'h' => app.visual_h(),
+                    'j' => app.visual_j(),
+                    'k' => app.visual_k(),
                     'l' => app.visual_l(),
 
                     'w' => app.visual_w(),
