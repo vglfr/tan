@@ -81,6 +81,18 @@ impl App {
         self.change = 0b0010;
     }
 
+    pub fn visual_s(&mut self) {
+        common::handle_s(self);
+        self.set_visual_end();
+        self.change = 0b0010;
+    }
+
+    pub fn visual_e(&mut self) {
+        common::handle_e(self);
+        self.set_visual_end();
+        self.change = 0b0010;
+    }
+
     pub fn visual_w(&mut self) {
         common::handle_w(self);
         self.set_visual_end();

@@ -33,9 +33,9 @@ Tasks:
 + multiline tags
 + drop mode indicator from statusline (display visual instead of tag in visual)
 + multiline untag
++ multiline visual
++ multiline tagging
 
-- multiline visual
-- multiline tagging
 - overlapping untag
 - finish refactoring (several impls, remaining methods)
 

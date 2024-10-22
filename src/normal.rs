@@ -25,6 +25,14 @@ impl App {
         common::handle_l(self);
     }
 
+    pub fn normal_s(&mut self) {
+        common::handle_s(self);
+    }
+
+    pub fn normal_e(&mut self) {
+        common::handle_e(self);
+    }
+
     pub fn normal_w(&mut self) {
         common::handle_w(self);
     }

@@ -110,8 +110,8 @@ fn main() -> std::io::Result<()> {
                     '\x11' => common::handle_pg_down(&mut app),
                     '\x12' => common::handle_pg_up(&mut app),
 
-                    's' => common::handle_s(&mut app),
-                    'e' => common::handle_e(&mut app),
+                    's' => app.normal_s(),
+                    'e' => app.normal_e(),
 
                     'S' => common::handle_S(&mut app),
                     'E' => common::handle_E(&mut app),
@@ -133,6 +133,9 @@ fn main() -> std::io::Result<()> {
                     'j' => app.visual_j(),
                     'k' => app.visual_k(),
                     'l' => app.visual_l(),
+
+                    's' => app.visual_s(),
+                    'e' => app.visual_e(),
 
                     'w' => app.visual_w(),
                     'b' => app.visual_b(),
