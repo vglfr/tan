@@ -15,6 +15,13 @@ impl App {
             .map(|x| x.end = self.cursor_column);
     }
 
+    pub fn visual_m(&mut self) {
+        self.set_modal_mode();
+        self.change = 0b_0001_0000;
+        // execute!(stdout, cursor::Hide)?;
+        // render::render_modal(app, stdout)
+    }
+
     pub fn visual_v(&mut self) {
         self.set_normal_mode();
         self.set_visual_end();

@@ -1,26 +1,19 @@
-use std::io::{Stdout, Write};
+use std::io::Stdout;
 
-use crossterm::{
-    cursor,
-    execute,
-    queue,
-    style::{self, Color},
-};
+use crossterm::{cursor, execute};
 
-use crate::{app::{self, App, Label}, color, helper, render};
+use crate::{app::{self, App, Label}, color, helper};
 
-struct Chunk {
-    text: String,
-    color: Color,
+impl App {
+    pub fn modal_m(&mut self) {
+        self.set_normal_mode();
+        self.change |= 0b_0000_0011;
+        // execute!(stdout, cursor::Show)?;
+        // render::render_offset(self, stdout)
+    }
 }
 
-pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.set_normal_mode();
-    execute!(stdout, cursor::Show)?;
-    render::render_offset(app, stdout)
-}
-
-pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_a(app: &mut App) {
     if app.labels.len() < 24 {
         let label = Label {
             name: "new_label".to_owned(),
@@ -31,31 +24,38 @@ pub fn handle_a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
 
         app.rng = (app.rng + 1) % app::COLORS.len();
         app.labels.push(label);
-        render_modal(app, stdout)
-    } else {
-        Ok(())
+
+        app.change |= 0b_0001_0000;
+        // render_modal(app, stdout)
     }
 }
 
-pub fn handle_d(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_d(app: &mut App) {
     // handle normal
     if app.labels.len() > 1 {
         app.labels.remove(app.modal_row);
         app.modal_row = (app.modal_row - 1).rem_euclid(app.labels.len());
-        render_modal(app, stdout)
-    } else {
-        Ok(())
+
+        app.change |= 0b_0001_0000;
+        // render_modal(app, stdout)
     }
 }
 
-pub fn handle_j(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_j(app: &mut App) {
     app.modal_row = (app.modal_row + 1) % app.labels.len();
-    render_modal(app, stdout)
+
+    app.change |= 0b_0001_0000;
+    // render_modal(app, stdout)
 }
 
-pub fn handle_k(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.modal_row = (app.modal_row - 1).rem_euclid(app.labels.len());
-    render_modal(app, stdout)
+pub fn handle_k(app: &mut App) {
+    if app.modal_row > 0 {
+        app.modal_row = app.modal_row - 1;
+    } else {
+        app.modal_row = app.labels.len() - 1;
+    }
+    app.change |= 0b_0001_0000;
+    // render_modal(app, stdout)
 }
 
 pub fn handle_i(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -74,72 +74,19 @@ pub fn handle_c(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     color::render_color(app, stdout)
 }
 
-pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_h(app: &mut App) {
     app.labels[app.modal_row].is_visible ^= true;
 
-    render::render_offset(app, stdout)?;
-    render_modal(app, stdout)
+    app.change |= 0b_0001_0000;
+    // render::render_offset(app, stdout)?;
+    // render_modal(app, stdout)
 }
 
-#[allow(non_snake_case)]
-pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_esc(app: &mut App) {
     app.labels[app.modal_active].is_active = false;
     app.modal_active = app.modal_row;
 
     app.labels[app.modal_active].is_active = true;
-    render_modal(app, stdout)
-}
-
-pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let lines = chunk_lines(app);
-
-    execute!(stdout, cursor::SavePosition)?;
-    queue!(stdout, helper::move_to(app.modal_start_column - 1, app.modal_start_row))?;
-
-    for (i, line) in lines.iter().enumerate() {
-        for chunk in line {
-            queue!(
-                stdout,
-                style::SetBackgroundColor(chunk.color),
-                style::SetForegroundColor(if i == app.modal_row + 1 { Color::Yellow } else { Color::White }),
-                style::Print(&chunk.text),
-            )?;
-        }
-
-        queue!(stdout, cursor::MoveDown(1))?;
-        queue!(stdout, helper::move_to_column(app.modal_start_column - 1))?;
-    }
-
-    execute!(stdout, cursor::RestorePosition)?;
-    stdout.flush()?;
-
-    Ok(())
-}
-
-fn chunk_lines(app: &mut App) -> Vec<Vec<Chunk>> {
-    let width = app.labels.iter().fold(0, |acc, x| std::cmp::max(acc, x.name.len()));
-    let mut lines = app.labels.iter().map(|x| chunk_label(x, width)).collect::<Vec<Vec<Chunk>>>();
-
-    lines.insert(0, vec![Chunk { text: format!("{:width$}", "", width=width+20), color: Color::Black }]);
-    lines.push(vec![Chunk { text: format!("{:width$}", "", width=width+20), color: Color::Black }]);
-
-    app.modal_start_column = (app.window_width - lines[0][0].text.len()) / 2;
-    app.modal_start_row = (app.window_height - lines.len()) / 2;
-
-    lines
-}
-
-fn chunk_label(label: &Label, width: usize) -> Vec<Chunk> {
-    let mut chunks = Vec::new();
-
-    chunks.push(Chunk { text: "  ".to_owned(), color: Color::Black });
-    chunks.push(Chunk { text: if label.is_active { "A".to_owned() } else { " ".to_owned() }, color: Color::Black });
-    chunks.push(Chunk { text: if label.is_visible { " ".to_owned() } else { "H".to_owned() }, color: Color::Black });
-    chunks.push(Chunk { text: "  ".to_owned(), color: Color::Black });
-    chunks.push(Chunk { text: "        ".to_owned(), color: label.color });
-    chunks.push(Chunk { text: "    ".to_owned(), color: Color::Black });
-    chunks.push(Chunk { text: format!("{:width$}", label.name, width=width), color: Color::Black });
-    chunks.push(Chunk { text: "  ".to_owned(), color: Color::Black });
-
-    chunks
+    // self.change |= 0b_0001_0000;
+    // render_modal(app, stdout)
 }

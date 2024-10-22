@@ -242,12 +242,6 @@ pub fn handle_e(app: &mut App) {
     app.change |= 0b0100;
 }
 
-pub fn handle_m(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.set_modal_mode();
-    execute!(stdout, cursor::Hide)?;
-    modal::render_modal(app, stdout)
-}
-
 pub fn handle_t(app: &mut App) {
     app.tag();
     app.set_normal_mode();
@@ -261,7 +255,7 @@ pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     execute!(stdout, cursor::Hide)?;
 
     render::render_offset(app, stdout)?;
-    modal::render_modal(app, stdout)
+    render::render_modal(app, stdout)
 }
 
 fn manage_vertical_drift(app: &mut App) {

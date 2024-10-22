@@ -19,7 +19,7 @@ pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_modal_mode();
 
     render::render_offset(app, stdout)?;
-    modal::render_modal(app, stdout)
+    render::render_modal(app, stdout)
 }
 
 pub fn render_color(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {

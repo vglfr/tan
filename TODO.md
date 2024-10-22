@@ -36,6 +36,7 @@ Tasks:
 + multiline visual
 + multiline tagging
 
+- fix modal render
 - overlapping untag
 - finish refactoring (several impls, remaining methods)
 

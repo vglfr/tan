@@ -1,4 +1,4 @@
-## TAN - Tiny Annotation Tool
+## tan - Tiny Annotation Tool
 
 Simple vim-like tool for NER annotation.
 
@@ -30,10 +30,10 @@ For now only SpaCy format is parsed.
 import json
 import spacy
 
-nlp = spacy.load("")
-doc = nlp("")
+nlp = spacy.load("en_core_web_sm")
+doc = nlp("data/test.txt")
 
-with open("", "wb") as f:
+with open("data/test.json", "wb") as f:
     f.write(doc.to_json())
 ```
 

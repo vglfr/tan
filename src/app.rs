@@ -78,17 +78,20 @@ impl App {
     }
 
     // u8 00000000
-    //           ^    app.mode
-    //          ^   app.offset_row
-    //         ^  app.cursor_column
+    //           ^ app.mode
+    //          ^ app.offset_row
+    //         ^ app.cursor_column
     //        ^ app.cursor_row
-    //       ^ app.is_visual
+    //       ^ app.modal
+    //      ^ app.color
+    //     ^ app.name
     pub fn get_change_flags(&mut self) -> Vec<Change> {
         let mut flags = Vec::new();
 
-        if self.change & 0b0001 > 0 { flags.push(Change::Status); }
-        if self.change & 0b0010 > 0 { flags.push(Change::Offset); }
-        if self.change & 0b1100 > 0 { flags.push(Change::Cursor); }
+        if self.change & 0b_0000_0001 > 0 { flags.push(Change::Status); }
+        if self.change & 0b_0000_0010 > 0 { flags.push(Change::Offset); }
+        if self.change & 0b_0000_1100 > 0 { flags.push(Change::Cursor); }
+        if self.change & 0b_0001_0000 > 0 { flags.push(Change::Modal); }
 
         flags
     }
@@ -166,18 +169,19 @@ impl App {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, ValueEnum)]
-pub enum FType {
-    Raw,
-    Spacy,
-    Tan,
-}
-
 #[derive(Debug, PartialEq)]
 pub enum Change {
     Cursor,
     Offset,
     Status,
+    Modal,
+}
+
+#[derive(Clone, Debug, PartialEq, ValueEnum)]
+pub enum FType {
+    Raw,
+    Spacy,
+    Tan,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
