@@ -15,20 +15,20 @@ impl App {
 
     pub fn command_char(&mut self, c: char) {
         self.command.push(c);
-        self.change |= 0b0001;
+        self.change |= 0b_0010_0000;
     }
 
     pub fn command_backspace(&mut self) {
         if !self.command.is_empty() {
             self.command.pop();
-            self.change |= 0b0001;
+            self.change |= 0b_0010_0000;
         }
     }
 
     pub fn command_esc(&mut self) {
         self.command.clear();
         self.set_normal_mode();
-        self.change |= 0b0001;
+        self.change |= 0b_0000_0001;
     }
 
     pub fn command_return(&mut self, stdout: &mut Stdout) -> std::io::Result<()> {

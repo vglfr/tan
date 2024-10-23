@@ -164,6 +164,7 @@ fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
             Change::Cursor => render::render_cursor(app, stdout)?,
             Change::Modal => render::render_modal(app, stdout)?,
             Change::Offset => render::render_offset(app, stdout)?,
+            Change::Command => render::render_command(app, stdout)?,
             Change::Status => render::render_status(app, stdout)?,
         }
     }

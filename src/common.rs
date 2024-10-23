@@ -7,7 +7,7 @@ use crate::{app::App, render};
 impl App {
     pub fn common_colon(&mut self) {
         self.set_command_mode();
-        self.change |= 0b0001;
+        self.change |= 0b_0010_0000;
     }
 }
 

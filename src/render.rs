@@ -3,7 +3,7 @@ use std::io::{Stdout, Write};
 use crossterm::{cursor, execute, queue, style::{self, Color}, terminal::{self, ClearType}};
 use serde::{Deserialize, Serialize};
 
-use crate::{app::{App, Label, Line, Mode}, helper};
+use crate::{app::{App, Label, Line}, helper};
 
 struct ModalChunk {
     text: String,
@@ -92,74 +92,83 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
         style::Print("                                                                                 "),
     )?;
 
-    if app.is_command_mode() {
+    if app.is_visual_mode() {
         queue!(
             stdout,
             helper::move_to(0, app.window_height - 1),
-            style::SetBackgroundColor(Color::Reset),
-            style::Print(":"),
-        )?;
-
-        queue!(
-            stdout,
-            helper::move_to(1, app.window_height - 1),
-            style::SetBackgroundColor(Color::Reset),
-            style::Print(&app.command),
+            style::SetBackgroundColor(Color::AnsiValue(172)),
+            style::Print("      "),
         )?;
     } else {
-        let mode_color = match app.mode {
-            // Mode::Color => Color::Yellow,
-            // Mode::Name => Color::Red,
-            Mode::Visual => Color::Yellow,
-            _ => Color::Reset,
-        };
+        let labels = app.get_current_line().tags.iter()
+            .filter(|x| app.labels[x.label].is_visible && x.start <= app.cursor_column && app.cursor_column < x.end)
+            .map(|x| x.label)
+            .collect::<Vec<usize>>();
 
-        queue!(
-            stdout,
-            helper::move_to(0, app.window_height - 1),
-            style::SetBackgroundColor(mode_color),
-            style::Print("     "),
-        )?;
-
-        // label
-        let col = app.cursor_column;
-        let label = app.get_current_line().tags.iter()
-            .find(|x| x.start <= col && col < x.end && app.labels[x.label].is_visible)
-            .map(|x| x.label);
-
-        if let Some(n) = label {
+        if let [n] = labels[..] {
             queue!(
                 stdout,
-                helper::move_to(8, app.window_height - 1),
+                helper::move_to(0, app.window_height - 1),
                 style::SetBackgroundColor(app.labels[n].color),
                 style::Print("      "),
             )?;
 
             queue!(
                 stdout,
-                helper::move_to(16, app.window_height - 1),
+                helper::move_to(8, app.window_height - 1),
                 style::SetBackgroundColor(Color::Reset),
                 style::Print(&app.labels[n].name),
             )?;
+        } else if labels.len() > 1 {
+            queue!(
+                stdout,
+                helper::move_to(0, app.window_height - 1),
+                style::SetBackgroundColor(Color::AnsiValue(160)),
+                style::Print("      "),
+            )?;
         }
-
-        // status
-        let status = format!(
-            "{}% {}:{}",
-            (app.cursor_row + app.offset_row) / app.nlines,
-            app.cursor_row + app.offset_row,
-            app.cursor_column,
-        );
-
-        queue!(
-            stdout,
-            helper::move_to(70, app.window_height - 1),
-            style::SetBackgroundColor(Color::Reset),
-            style::Print(status),
-        )?;
-
-        queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row))?;
     }
+
+    let status = format!(
+        "{}% {}:{}",
+        (app.cursor_row + app.offset_row) / app.nlines,
+        app.cursor_row + app.offset_row,
+        app.cursor_column,
+    );
+
+    queue!(
+        stdout,
+        helper::move_to(70, app.window_height - 1),
+        style::SetBackgroundColor(Color::Reset),
+        style::Print(status),
+    )?;
+
+    queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row))?;
+
+    stdout.flush()
+}
+
+pub fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    queue!(
+        stdout,
+        helper::move_to(0, app.window_height - 1),
+        style::SetBackgroundColor(Color::Reset),
+        style::Print("                                                                                 "),
+    )?;
+
+    queue!(
+        stdout,
+        helper::move_to(0, app.window_height - 1),
+        style::SetBackgroundColor(Color::Reset),
+        style::Print(":"),
+    )?;
+
+    queue!(
+        stdout,
+        helper::move_to(1, app.window_height - 1),
+        style::SetBackgroundColor(Color::Reset),
+        style::Print(&app.command),
+    )?;
 
     stdout.flush()
 }

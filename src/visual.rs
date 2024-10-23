@@ -31,7 +31,7 @@ impl App {
     pub fn visual_h(&mut self) {
         common::handle_h(self);
         self.set_visual_end();
-        self.change = 0b0010;
+        self.change = 0b0011;
     }
 
     pub fn visual_j(&mut self) {
@@ -54,7 +54,7 @@ impl App {
                 self.visual.push(region);
             }
 
-            self.change = 0b0010;
+            self.change = 0b0011;
         }
     }
 
@@ -78,37 +78,37 @@ impl App {
                 self.visual.insert(0, region);
             }
 
-            self.change = 0b0010;
+            self.change = 0b0011;
         }
     }
 
     pub fn visual_l(&mut self) {
         common::handle_l(self);
         self.set_visual_end();
-        self.change = 0b0010;
+        self.change = 0b0011;
     }
 
     pub fn visual_s(&mut self) {
         common::handle_s(self);
         self.set_visual_end();
-        self.change = 0b0010;
+        self.change = 0b0011;
     }
 
     pub fn visual_e(&mut self) {
         common::handle_e(self);
         self.set_visual_end();
-        self.change = 0b0010;
+        self.change = 0b0011;
     }
 
     pub fn visual_w(&mut self) {
         common::handle_w(self);
         self.set_visual_end();
-        self.change = 0b0010;
+        self.change = 0b0011;
     }
 
     pub fn visual_b(&mut self) {
         common::handle_b(self);
         self.set_visual_end();
-        self.change = 0b0010;
+        self.change = 0b0011;
     }
 }

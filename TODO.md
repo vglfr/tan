@@ -36,9 +36,10 @@ Tasks:
 + multiline visual
 + multiline tagging
 + fix modal render
++ fix status styling
 
 - fix modal width & height
-- fix status styling
+- make dissapeareable (8 seconds?) error messages at status
 - overlapping untag
 - finish refactoring (several impls, remaining methods)
 

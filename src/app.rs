@@ -78,19 +78,21 @@ impl App {
     }
 
     // u8 00000000
-    //           ^ app.mode
+    //           ^ app.status
     //          ^ app.offset_row
     //         ^ app.cursor_column
     //        ^ app.cursor_row
     //       ^ app.modal
-    //      ^ app.color
-    //     ^ app.name
+    //      ^ app.command
+    //     ^ app.color
+    //    ^ app.name
     pub fn get_change_flags(&mut self) -> Vec<Change> {
         let mut flags = Vec::new();
 
         if self.change & 0b_0000_0010 > 0 { flags.push(Change::Offset); }
         if self.change & 0b_0001_0000 > 0 { flags.push(Change::Modal); }
         if self.change & 0b_0000_0001 > 0 { flags.push(Change::Status); }
+        if self.change & 0b_0010_0000 > 0 { flags.push(Change::Command); }
         if self.change & 0b_0000_1100 > 0 { flags.push(Change::Cursor); }
 
         flags
@@ -171,6 +173,7 @@ impl App {
 
 #[derive(Debug, PartialEq)]
 pub enum Change {
+    Command,
     Cursor,
     Offset,
     Status,
