@@ -124,7 +124,7 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
         // label
         let col = app.cursor_column;
         let label = app.get_current_line().tags.iter()
-            .find(|x| x.start <= col && col < x.end)
+            .find(|x| x.start <= col && col < x.end && app.labels[x.label].is_visible)
             .map(|x| x.label);
 
         if let Some(n) = label {
@@ -180,7 +180,7 @@ fn chunk_line(line: &Line, app: &App) -> Vec<OffsetChunk> {
         .filter(|(e,s)| *e > s)
         .map(|(e,s)| {
             let tags = line.tags.iter()
-                .filter(|x| x.start <= s && *e <= x.end)
+                .filter(|x| app.labels[x.label].is_visible && x.start <= s && *e <= x.end)
                 .map(|x| x.label)
                 .collect::<Vec<usize>>();
 
@@ -190,8 +190,7 @@ fn chunk_line(line: &Line, app: &App) -> Vec<OffsetChunk> {
                 } else if tags.len() > 1 {
                     Color::AnsiValue(160)
                 } else if let [tag] = tags[..] {
-                    let label = &app.labels[tag];
-                    if label.is_visible { label.color } else { Color::Reset }
+                    app.labels[tag].color
                 } else {
                     Color::Reset
                 };

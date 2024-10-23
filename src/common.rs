@@ -2,7 +2,7 @@ use std::io::Stdout;
 
 use crossterm::{cursor, execute};
 
-use crate::{app::App, modal, render};
+use crate::{app::App, render};
 
 impl App {
     pub fn common_colon(&mut self) {

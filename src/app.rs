@@ -88,10 +88,10 @@ impl App {
     pub fn get_change_flags(&mut self) -> Vec<Change> {
         let mut flags = Vec::new();
 
-        if self.change & 0b_0000_0001 > 0 { flags.push(Change::Status); }
         if self.change & 0b_0000_0010 > 0 { flags.push(Change::Offset); }
-        if self.change & 0b_0000_1100 > 0 { flags.push(Change::Cursor); }
         if self.change & 0b_0001_0000 > 0 { flags.push(Change::Modal); }
+        if self.change & 0b_0000_0001 > 0 { flags.push(Change::Status); }
+        if self.change & 0b_0000_1100 > 0 { flags.push(Change::Cursor); }
 
         flags
     }

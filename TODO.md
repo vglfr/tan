@@ -35,14 +35,17 @@ Tasks:
 + multiline untag
 + multiline visual
 + multiline tagging
++ fix modal render
 
-- fix modal render
+- fix modal width & height
+- fix status styling
 - overlapping untag
 - finish refactoring (several impls, remaining methods)
 
 - Coralie demo
 
 - terminal resize
+- handle c-u c-w in command / name mode
 - render line (visual hl move optimization)
 - error handling
 - use mouse to set cursor position

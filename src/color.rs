@@ -2,7 +2,7 @@ use std::io::{Stdout, Write};
 
 use crossterm::{cursor, execute, queue, style};
 
-use crate::{app::{self, App}, helper, modal, render};
+use crate::{app::{self, App}, helper, render};
 
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.color_column = (app.color_column - 1).rem_euclid(7);

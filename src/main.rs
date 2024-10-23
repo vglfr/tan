@@ -52,31 +52,29 @@ fn main() -> std::io::Result<()> {
                     c@'!'..='~' => app.command_char(c),
                     '\x08' => app.command_backspace(),
 
-                    '\x0a' => command::handle_0a(&mut app, &mut stdout)?,
+                    '\x0a' => app.command_return(&mut stdout)?,
                     '\x1b' => app.command_esc(),
-
-                    // 'c-u' => (),
-                    // 'c-w' => (),
 
                     _ => (),
                 },
             Mode::Modal =>
                 match keycode {
-                    ':' => app.common_colon(),
+                    // ':' => app.common_colon(),
                     'm' => app.modal_m(),
-
-                    'a' => modal::handle_a(&mut app),
-                    'd' => modal::handle_d(&mut app),
-
-                    'j' => modal::handle_j(&mut app),
-                    'k' => modal::handle_k(&mut app),
 
                     'i' => modal::handle_i(&mut app, &mut stdout)?,
                     'c' => modal::handle_c(&mut app, &mut stdout)?,
 
-                    'h' => modal::handle_h(&mut app),
-                    // isolate tag (hide all tags except this one) -- toggle -- H
-                    '\x0a' => modal::handle_esc(&mut app),
+                    'j' => app.modal_j(),
+                    'k' => app.modal_k(),
+
+                    'h' => app.modal_h(),
+                    'H' => app.modal_H(),
+
+                    'a' => app.modal_a(),
+                    'd' => app.modal_d(),
+
+                    '\x0a' => app.modal_return(),
                     _ => (),
                 },
             Mode::Name =>
@@ -86,9 +84,6 @@ fn main() -> std::io::Result<()> {
 
                     '\x0a' => common::handle_1b(&mut app, &mut stdout)?,
                     '\x1b' => common::handle_1b(&mut app, &mut stdout)?,
-
-                    // 'c-u' => (),
-                    // 'c-w' => (),
 
                     _ => (),
                 },
@@ -121,6 +116,7 @@ fn main() -> std::io::Result<()> {
 
                     't' => common::handle_t(&mut app),
                     'u' => app.normal_u(),
+
                     _ => (),
                 },
             Mode::Visual =>
@@ -163,7 +159,7 @@ fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     let flags = app.get_change_flags();
     app.change = 0;
 
-    for flag in flags {
+    for flag in &flags {
         match flag {
             Change::Cursor => render::render_cursor(app, stdout)?,
             Change::Modal => render::render_modal(app, stdout)?,

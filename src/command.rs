@@ -30,15 +30,15 @@ impl App {
         self.set_normal_mode();
         self.change |= 0b0001;
     }
-}
 
-pub fn handle_0a(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.change |= 0b0001;
-    match app.command.as_str() {
-        "q" | "quit" => execute_exit(stdout),
-        "w" | "write" => execute_write(app),
-        "d" | "debug" => execute_debug(app),
-        _ => Ok(()),
+    pub fn command_return(&mut self, stdout: &mut Stdout) -> std::io::Result<()> {
+        self.change |= 0b0001;
+        match self.command.as_str() {
+            "q" | "quit" => execute_exit(stdout),
+            "w" | "write" => execute_write(self),
+            "d" | "debug" => execute_debug(self),
+            _ => Ok(()),
+        }
     }
 }
 

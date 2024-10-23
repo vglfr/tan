@@ -91,7 +91,8 @@ with open("data/test.json", "wb") as f:
 | `d` | delete tag |
 | `i` | edit tag name |
 | `c` | edit tag color |
-| `h` | toggle tag visibility |
+| `h` | toggle active tag visibility |
+| `H` | toggle all tag visibility |
 | `Return` | activate tag |
 
 #### Commands

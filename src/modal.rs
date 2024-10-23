@@ -8,54 +8,82 @@ impl App {
     pub fn modal_m(&mut self) {
         self.set_normal_mode();
         self.change |= 0b_0000_0011;
-        // execute!(stdout, cursor::Show)?;
-        // render::render_offset(self, stdout)
     }
-}
 
-pub fn handle_a(app: &mut App) {
-    if app.labels.len() < 24 {
-        let label = Label {
-            name: "new_label".to_owned(),
-            color: app::COLORS[app.rng],
-            is_active: false,
-            is_visible: true,
-        };
-
-        app.rng = (app.rng + 1) % app::COLORS.len();
-        app.labels.push(label);
-
-        app.change |= 0b_0001_0000;
-        // render_modal(app, stdout)
+    pub fn modal_j(&mut self) {
+        self.modal_row = (self.modal_row + 1) % self.labels.len();
+        self.change |= 0b_0001_0000;
     }
-}
 
-pub fn handle_d(app: &mut App) {
-    // handle normal
-    if app.labels.len() > 1 {
-        app.labels.remove(app.modal_row);
-        app.modal_row = (app.modal_row - 1).rem_euclid(app.labels.len());
-
-        app.change |= 0b_0001_0000;
-        // render_modal(app, stdout)
+    pub fn modal_k(&mut self) {
+        if self.modal_row > 0 {
+            self.modal_row = self.modal_row - 1;
+        } else {
+            self.modal_row = self.labels.len() - 1;
+        }
+        self.change |= 0b_0001_0000;
     }
-}
 
-pub fn handle_j(app: &mut App) {
-    app.modal_row = (app.modal_row + 1) % app.labels.len();
-
-    app.change |= 0b_0001_0000;
-    // render_modal(app, stdout)
-}
-
-pub fn handle_k(app: &mut App) {
-    if app.modal_row > 0 {
-        app.modal_row = app.modal_row - 1;
-    } else {
-        app.modal_row = app.labels.len() - 1;
+    pub fn modal_h(&mut self) {
+        self.labels[self.modal_row].is_visible ^= true;
+        self.change |= 0b_0001_0011;
     }
-    app.change |= 0b_0001_0000;
-    // render_modal(app, stdout)
+
+    #[allow(non_snake_case)]
+    pub fn modal_H(&mut self) {
+        self.labels.iter_mut().for_each(|x| x.is_visible ^= true);
+        self.change |= 0b_0001_0011;
+    }
+
+    pub fn modal_a(&mut self) {
+        if self.labels.len() < 24 {
+            let label = Label {
+                name: "new_label".to_owned(),
+                color: app::COLORS[self.rng],
+                is_active: false,
+                is_visible: true,
+            };
+
+            self.labels.insert(self.modal_row + 1, label);
+            self.lines.iter_mut().for_each(
+                |x| x.tags.iter_mut().for_each(
+                    |y| if y.label > self.modal_row { y.label += 1 }
+                )
+            );
+
+            self.rng = (self.rng + 1) % app::COLORS.len();
+            self.change |= 0b_0001_0011;
+        }
+    }
+
+    pub fn modal_d(&mut self) {
+        if self.labels.len() > 1 {
+            self.lines.iter_mut().for_each(|x|
+                x.tags = x.tags.clone().into_iter()
+                    .filter(|y| y.label != self.modal_row)
+                    .map(|mut y| if y.label > self.modal_row { y.label -= 1; y } else { y })
+                    .collect()
+            );
+
+            self.labels.remove(self.modal_row);
+            self.modal_row = self.modal_row.saturating_sub(1).rem_euclid(self.labels.len());
+
+            if !self.labels.iter().any(|x| x.is_active) {
+                self.modal_active = self.modal_row;
+                self.labels[self.modal_active].is_active = true;
+            }
+
+            self.change |= 0b_0001_0011;
+        }
+    }
+
+    pub fn modal_return(&mut self) {
+        self.labels[self.modal_active].is_active = false;
+        self.modal_active = self.modal_row;
+
+        self.labels[self.modal_active].is_active = true;
+        self.change |= 0b_0001_0000;
+    }
 }
 
 pub fn handle_i(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -72,21 +100,4 @@ pub fn handle_c(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_color_mode();
     app.color_column = app::COLORS.iter().position(|x| x == &app.labels[app.modal_row].color).unwrap();
     color::render_color(app, stdout)
-}
-
-pub fn handle_h(app: &mut App) {
-    app.labels[app.modal_row].is_visible ^= true;
-
-    app.change |= 0b_0001_0000;
-    // render::render_offset(app, stdout)?;
-    // render_modal(app, stdout)
-}
-
-pub fn handle_esc(app: &mut App) {
-    app.labels[app.modal_active].is_active = false;
-    app.modal_active = app.modal_row;
-
-    app.labels[app.modal_active].is_active = true;
-    // self.change |= 0b_0001_0000;
-    // render_modal(app, stdout)
 }
