@@ -55,6 +55,9 @@ pub struct App {
 
 impl App {
     pub fn new(filename: &str, lines: Vec<Line>, labels: Vec<Label>, window: WindowSize) -> App {
+        let window_height = window.rows as usize;
+        let window_width = window.columns as usize;
+
         App {
             filename: filename.to_owned(),
             change: 0,
@@ -68,14 +71,14 @@ impl App {
             modal_active: 0,
             modal_column: 0,
             modal_row: 0,
-            modal_start_column: 0,
-            modal_start_row: 0,
+            modal_start_column: window_width / 2 - 20,
+            modal_start_row: window_height / 2 - 20,
             mode: Mode::Normal,
             offset_row: 0,
             rng: 0,
             visual: Vec::new(),
-            window_height: window.rows as usize,
-            window_width: window.columns as usize,
+            window_height,
+            window_width,
         }
     }
 

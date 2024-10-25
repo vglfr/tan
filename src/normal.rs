@@ -11,7 +11,7 @@ impl App {
 
     pub fn normal_m(&mut self) {
         self.set_modal_mode();
-        self.change = 0b_0001_0000;
+        self.change = 0b_0001_1000;
         // execute!(stdout, cursor::Hide)?;
         // render::render_modal(app, stdout)
     }

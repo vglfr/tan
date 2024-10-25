@@ -1,8 +1,4 @@
-use std::io::Stdout;
-
-use crossterm::{cursor, execute};
-
-use crate::{app::App, render};
+use crate::app::App;
 
 impl App {
     pub fn common_colon(&mut self) {
@@ -250,12 +246,10 @@ pub fn handle_t(app: &mut App) {
     // app.visual_end = app.visual_start;
 }
 
-pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn handle_esc(app: &mut App) {
     app.set_modal_mode();
+    app.change |= 0b_0001_0011;
     // execute!(stdout, cursor::Hide)?;
-
-    render::render_offset(app, stdout)?;
-    render::render_modal(app, stdout)
 }
 
 fn manage_vertical_drift(app: &mut App) {

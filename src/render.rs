@@ -5,9 +5,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{app::{App, Label, Line}, helper};
 
+#[derive(Clone)]
 struct ModalChunk {
     text: String,
     color: Color,
+    is_name: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -18,14 +20,18 @@ struct OffsetChunk {
 }
 
 pub fn render_cursor(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let cursor_column = if app.get_current_line().is_virtual { app.cursor_column + 2 } else { app.cursor_column };
-    queue!(stdout, helper::move_to(cursor_column, app.cursor_row))
+    if app.is_name_mode() {
+        queue!(stdout, helper::move_to(app.modal_column, app.modal_start_row + app.modal_row + 1))
+    } else {
+        let cursor_column = if app.get_current_line().is_virtual { app.cursor_column + 2 } else { app.cursor_column };
+        queue!(stdout, helper::move_to(cursor_column, app.cursor_row))
+    }
 }
 
 pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     let lines = chunk_modal_lines(app);
 
-    queue!(stdout, cursor::SavePosition)?;
+    // queue!(stdout, cursor::SavePosition)?;
     queue!(stdout, helper::move_to(app.modal_start_column, app.modal_start_row))?;
 
     for (i, line) in lines.iter().enumerate() {
@@ -33,7 +39,8 @@ pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
             queue!(
                 stdout,
                 style::SetBackgroundColor(chunk.color),
-                style::SetForegroundColor(if i == app.modal_row + 1 { Color::Yellow } else { Color::White }),
+                // style::SetForegroundColor(if i == app.modal_row + 1 { Color::Yellow } else { Color::White }),
+                style::SetForegroundColor(if i == app.modal_row + 1 && chunk.is_name { Color::Yellow } else { Color::White }),
                 style::Print(&chunk.text),
             )?;
         }
@@ -42,7 +49,9 @@ pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         queue!(stdout, helper::move_to_column(app.modal_start_column))?;
     }
 
-    queue!(stdout, cursor::RestorePosition)
+    Ok(())
+
+    // queue!(stdout, cursor::RestorePosition)
 }
 
 pub fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -197,11 +206,13 @@ fn chunk_line(line: &Line, app: &App) -> Vec<OffsetChunk> {
 fn chunk_modal_lines(app: &mut App) -> Vec<Vec<ModalChunk>> {
     let mut lines = app.labels.iter().map(chunk_label).collect::<Vec<Vec<ModalChunk>>>();
 
-    lines.insert(0, vec![ModalChunk { text: format!("{:width$}", "", width=42), color: Color::Black }]);
-    lines.push(vec![ModalChunk { text: format!("{:width$}", "", width=42), color: Color::Black }]);
+    let blank = vec![ModalChunk { text: format!(" │{:width$}│ ", "", width=44), color: Color::Reset, is_name: false }];
+    let top = vec![ModalChunk { text: format!(" ┌{:─>width$}┐ ", "", width=44), color: Color::Reset, is_name: false }];
+    let bottom = vec![ModalChunk { text: format!(" └{:─>width$}┘ ", "", width=44), color: Color::Reset, is_name: false }];
 
-    app.modal_start_column = app.window_width / 2 - 20;
-    app.modal_start_row = app.window_height / 2 - 20;
+    lines.insert(0, top);
+    lines.extend(std::iter::repeat(blank).take(25usize.saturating_sub(lines.len())));
+    lines.push(bottom);
 
     lines
 }
@@ -209,14 +220,14 @@ fn chunk_modal_lines(app: &mut App) -> Vec<Vec<ModalChunk>> {
 fn chunk_label(label: &Label) -> Vec<ModalChunk> {
     let mut chunks = Vec::new();
 
-    chunks.push(ModalChunk { text: "  ".to_owned(), color: Color::Black });
-    chunks.push(ModalChunk { text: if label.is_active { "A".to_owned() } else { " ".to_owned() }, color: Color::Black });
-    chunks.push(ModalChunk { text: if label.is_visible { " ".to_owned() } else { "H".to_owned() }, color: Color::Black });
-    chunks.push(ModalChunk { text: "  ".to_owned(), color: Color::Black });
-    chunks.push(ModalChunk { text: "        ".to_owned(), color: label.color });
-    chunks.push(ModalChunk { text: "    ".to_owned(), color: Color::Black });
-    chunks.push(ModalChunk { text: format!("{:width$}", label.name, width=24), color: Color::Black });
-    chunks.push(ModalChunk { text: "  ".to_owned(), color: Color::Black });
+    chunks.push(ModalChunk { text: " │ ".to_owned(), color: Color::Reset, is_name: false });
+    chunks.push(ModalChunk { text: if label.is_active { "A".to_owned() } else { " ".to_owned() }, color: Color::Reset, is_name: false });
+    chunks.push(ModalChunk { text: if label.is_visible { " ".to_owned() } else { "H".to_owned() }, color: Color::Reset, is_name: false });
+    chunks.push(ModalChunk { text: "  ".to_owned(), color: Color::Reset, is_name: false });
+    chunks.push(ModalChunk { text: "        ".to_owned(), color: label.color, is_name: false });
+    chunks.push(ModalChunk { text: "    ".to_owned(), color: Color::Reset, is_name: false });
+    chunks.push(ModalChunk { text: format!("{:width$}", label.name, width=26), color: Color::Reset, is_name: true });
+    chunks.push(ModalChunk { text: " │ ".to_owned(), color: Color::Reset, is_name: false });
 
     chunks
 }

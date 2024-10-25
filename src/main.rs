@@ -43,7 +43,7 @@ fn main() -> std::io::Result<()> {
                     'l' => color::handle_l(&mut app, &mut stdout)?,
 
                     '\x0a' => color::handle_0a(&mut app, &mut stdout)?,
-                    '\x1b' => common::handle_1b(&mut app, &mut stdout)?,
+                    '\x1b' => common::handle_esc(&mut app),
 
                     _ => (),
                 },
@@ -82,8 +82,8 @@ fn main() -> std::io::Result<()> {
                     c@'!'..='~' => app.name_key(c),
                     '\x08' => app.name_backspace(),
 
-                    '\x0a' => common::handle_1b(&mut app, &mut stdout)?,
-                    '\x1b' => common::handle_1b(&mut app, &mut stdout)?,
+                    '\x0a' => common::handle_esc(&mut app),
+                    '\x1b' => common::handle_esc(&mut app),
 
                     _ => (),
                 },

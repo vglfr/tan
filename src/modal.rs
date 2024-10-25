@@ -12,7 +12,7 @@ impl App {
 
     pub fn modal_j(&mut self) {
         self.modal_row = (self.modal_row + 1) % self.labels.len();
-        self.change |= 0b_0001_0000;
+        self.change |= 0b_0001_1000;
     }
 
     pub fn modal_k(&mut self) {
@@ -21,7 +21,7 @@ impl App {
         } else {
             self.modal_row = self.labels.len() - 1;
         }
-        self.change |= 0b_0001_0000;
+        self.change |= 0b_0001_1000;
     }
 
     pub fn modal_h(&mut self) {
@@ -88,12 +88,14 @@ impl App {
 
 pub fn handle_i(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_name_mode();
+    app.change |= 0b_0000_1000;
 
-    let col = app.modal_start_column + app.labels[app.modal_row].name.len() + 17;
-    let row = app.modal_start_row + app.modal_row + 1;
+    // let col = app.modal_start_column + app.labels[app.modal_row].name.len() + 17;
+    // let row = app.modal_start_row + app.modal_row + 1;
 
-    execute!(stdout, helper::move_to(col, row))?;
-    execute!(stdout, cursor::Show)
+    // execute!(stdout, helper::move_to(col, row))?;
+    // execute!(stdout, cursor::Show)
+    Ok(())
 }
 
 pub fn handle_c(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {

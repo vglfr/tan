@@ -6,7 +6,7 @@ impl App {
     }
 
     pub fn set_name_mode(&mut self) {
-        self.modal_column = self.modal_start_column + self.labels[self.modal_row].name.len() + 12;
+        self.modal_column = self.modal_start_column + self.labels[self.modal_row].name.len() + 19;
         self.mode = Mode::Name;
     }
 
@@ -17,7 +17,7 @@ impl App {
             name.pop();
 
             self.modal_column -= 1;
-            self.change |= 0b_0001_0001;
+            self.change |= 0b_0001_1001;
         }
     }
 
@@ -28,7 +28,7 @@ impl App {
             name.push(c);
 
             self.modal_column += 1;
-            self.change |= 0b_0001_0001;
+            self.change |= 0b_0001_1001;
         }
     }
 }
