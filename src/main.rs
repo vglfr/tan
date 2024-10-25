@@ -1,5 +1,4 @@
 pub mod app;
-pub mod color;
 pub mod command;
 pub mod common;
 pub mod helper;
@@ -37,16 +36,6 @@ fn main() -> std::io::Result<()> {
         let keycode = extract_keycode()?;
 
         match app.mode {
-            Mode::Color =>
-                match keycode {
-                    'h' => color::handle_h(&mut app, &mut stdout)?,
-                    'l' => color::handle_l(&mut app, &mut stdout)?,
-
-                    '\x0a' => color::handle_0a(&mut app, &mut stdout)?,
-                    '\x1b' => common::handle_esc(&mut app),
-
-                    _ => (),
-                },
             Mode::Command =>
                 match keycode {
                     c@'!'..='~' => app.command_char(c),
@@ -59,17 +48,16 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Modal =>
                 match keycode {
-                    // ':' => app.common_colon(),
                     'm' => app.modal_m(),
-
-                    'i' => modal::handle_i(&mut app, &mut stdout)?,
-                    'c' => modal::handle_c(&mut app, &mut stdout)?,
-
-                    'j' => app.modal_j(),
-                    'k' => app.modal_k(),
+                    'i' => app.modal_i(),
 
                     'h' => app.modal_h(),
-                    'H' => app.modal_H(),
+                    'j' => app.modal_j(),
+                    'k' => app.modal_k(),
+                    'l' => app.modal_l(),
+
+                    'v' => app.modal_v(),
+                    'V' => app.modal_V(),
 
                     'a' => app.modal_a(),
                     'd' => app.modal_d(),
@@ -79,7 +67,7 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Name =>
                 match keycode {
-                    c@'!'..='~' => app.name_key(c),
+                    c@'!'..='~' => app.name_char(c),
                     '\x08' => app.name_backspace(),
 
                     '\x0a' => common::handle_esc(&mut app),

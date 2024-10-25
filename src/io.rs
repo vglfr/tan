@@ -228,7 +228,7 @@ fn parse_labels(ents: &Vec<Ent>) -> Vec<Label> {
     for ent in ents {
         if !labels.iter().map(|x: &Label| &x.name).contains(&ent.label) {
             let label = Label {
-                name: ent.label.clone(),
+                name: ent.label.chars().take(20).collect(),
                 color: *colors.next().unwrap(),
                 is_active: if labels.is_empty() { true } else { false },
                 is_visible: true,

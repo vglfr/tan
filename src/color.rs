@@ -4,6 +4,12 @@ use crossterm::{cursor, execute, queue, style};
 
 use crate::{app::{self, App}, helper, render};
 
+impl App {
+    pub fn color_h(&mut self) {
+        self.color_column = (self.color_column - 1).rem_euclid(7);
+    }
+}
+
 pub fn handle_h(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.color_column = (app.color_column - 1).rem_euclid(7);
     render_color(app, stdout)

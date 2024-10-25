@@ -3,7 +3,7 @@ use std::io::Stdout;
 use crossterm::{cursor, queue, style::{self, Color}, terminal::{self, ClearType}};
 use serde::{Deserialize, Serialize};
 
-use crate::{app::{App, Label, Line}, helper};
+use crate::{app::{self, App, Label, Line}, helper};
 
 #[derive(Clone)]
 struct ModalChunk {
@@ -206,12 +206,20 @@ fn chunk_line(line: &Line, app: &App) -> Vec<OffsetChunk> {
 fn chunk_modal_lines(app: &mut App) -> Vec<Vec<ModalChunk>> {
     let mut lines = app.labels.iter().map(chunk_label).collect::<Vec<Vec<ModalChunk>>>();
 
-    let blank = vec![ModalChunk { text: format!(" │{:width$}│ ", "", width=44), color: Color::Reset, is_name: false }];
-    let top = vec![ModalChunk { text: format!(" ┌{:─>width$}┐ ", "", width=44), color: Color::Reset, is_name: false }];
-    let bottom = vec![ModalChunk { text: format!(" └{:─>width$}┘ ", "", width=44), color: Color::Reset, is_name: false }];
+    let blank = vec![ModalChunk { text: format!(" │{:width$}│ ", "", width=38), color: Color::Reset, is_name: false }];
+    let top = vec![ModalChunk { text: format!(" ┌{:─>width$}┐ ", "", width=38), color: Color::Reset, is_name: false }];
+    let bottom = vec![ModalChunk { text: format!(" └{:─>width$}┘ ", "", width=38), color: Color::Reset, is_name: false }];
+
+    let color = app.labels[app.modal_row].color;
+    let mut colors: Vec<ModalChunk> = app::COLORS.iter()
+        .map(|x| ModalChunk { text: if x == &color { "◄►".to_owned() } else { "  ".to_owned() }, color: *x, is_name: false })
+        .collect();
+    colors.insert(0, ModalChunk { text: " │ ".to_owned(), color: Color::Reset, is_name: false });
+    colors.push(ModalChunk { text: " │ ".to_owned(), color: Color::Reset, is_name: false });
 
     lines.insert(0, top);
     lines.extend(std::iter::repeat(blank).take(25usize.saturating_sub(lines.len())));
+    lines.push(colors);
     lines.push(bottom);
 
     lines
@@ -226,7 +234,7 @@ fn chunk_label(label: &Label) -> Vec<ModalChunk> {
     chunks.push(ModalChunk { text: "  ".to_owned(), color: Color::Reset, is_name: false });
     chunks.push(ModalChunk { text: "        ".to_owned(), color: label.color, is_name: false });
     chunks.push(ModalChunk { text: "    ".to_owned(), color: Color::Reset, is_name: false });
-    chunks.push(ModalChunk { text: format!("{:width$}", label.name, width=26), color: Color::Reset, is_name: true });
+    chunks.push(ModalChunk { text: format!("{:width$}", label.name, width=20), color: Color::Reset, is_name: true });
     chunks.push(ModalChunk { text: " │ ".to_owned(), color: Color::Reset, is_name: false });
 
     chunks

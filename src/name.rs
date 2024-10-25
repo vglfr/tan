@@ -21,10 +21,10 @@ impl App {
         }
     }
 
-    pub fn name_key(&mut self, c: char) {
+    pub fn name_char(&mut self, c: char) {
         let name = &mut self.labels[self.modal_row].name;
 
-        if name.len() < 24 {
+        if name.len() < 20 {
             name.push(c);
 
             self.modal_column += 1;

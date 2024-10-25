@@ -87,13 +87,16 @@ with open("data/test.json", "wb") as f:
 
 | key | command |
 | -- | -- |
+| `j` | next tag |
+| `k` | previous tag |
+| `h` | next color |
+| `l` | previous color |
 | `a` | add tag |
 | `d` | delete tag |
 | `i` | edit tag name |
-| `c` | edit tag color |
-| `h` | toggle active tag visibility |
-| `H` | toggle all tag visibility |
-| `Return` | activate tag |
+| `v` | toggle active tag visibility |
+| `V` | toggle all tag visibility |
+| `Return` | rename tag / activate tag |
 
 #### Commands
 

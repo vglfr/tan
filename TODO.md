@@ -38,16 +38,13 @@ Tasks:
 + fix modal render
 + fix status styling
 + Coralie demo
++ fix modal width & height
++ refactor color mode
 
-- fix modal width & height
-- make dissapeareable (8 seconds?) error messages at status
+- fix blinking
 - overlapping untag
-- finish refactoring (several impls, remaining methods)
-
-- on error:
-  - write debug log
-  - restore screen
-  - write error message pointing to debug log
+- error messages
+- finish refactoring
 
 - terminal resize
 - handle c-u c-w in command / name mode

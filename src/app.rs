@@ -2,38 +2,31 @@ use clap::ValueEnum;
 use crossterm::{style::Color, terminal::WindowSize};
 use serde::{Deserialize, Serialize};
 
-pub const COLORS: [Color; 24] = [
-    Color::AnsiValue(26),
-    Color::AnsiValue(206),
-    Color::AnsiValue(62),
-    Color::AnsiValue(102),
-    Color::AnsiValue(24),
-    Color::AnsiValue(174),
+pub const COLORS: [Color; 18] = [
+    Color::AnsiValue(98),
     Color::AnsiValue(176),
+    Color::AnsiValue(206),
+    Color::AnsiValue(102),
+    Color::AnsiValue(212),
     Color::AnsiValue(30),
-    Color::AnsiValue(210),
+    Color::AnsiValue(66),
+    Color::AnsiValue(60),
     Color::AnsiValue(170),
-    Color::AnsiValue(140),
     Color::AnsiValue(138),
+    Color::AnsiValue(24),
+    Color::AnsiValue(68),
     Color::AnsiValue(134),
     Color::AnsiValue(168),
-    Color::AnsiValue(68),
-    Color::AnsiValue(98),
-    Color::AnsiValue(104),
-    Color::AnsiValue(60),
-    Color::AnsiValue(32),
-    Color::AnsiValue(212),
-    Color::AnsiValue(132),
     Color::AnsiValue(204),
-    Color::AnsiValue(96),
-    Color::AnsiValue(66),
+    Color::AnsiValue(26),
+    Color::AnsiValue(32),
+    Color::AnsiValue(104),
 ];
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct App {
     pub filename: String,
     pub change: u8,
-    pub color_column: usize,
     pub command: String,
     pub cursor_column: usize,
     pub cursor_row: usize,
@@ -61,7 +54,6 @@ impl App {
         App {
             filename: filename.to_owned(),
             change: 0,
-            color_column: 0,
             command: String::new(),
             cursor_column: 0,
             cursor_row: 0,
@@ -72,7 +64,7 @@ impl App {
             modal_column: 0,
             modal_row: 0,
             modal_start_column: window_width / 2 - 20,
-            modal_start_row: window_height / 2 - 20,
+            modal_start_row: window_height / 2 - 12,
             mode: Mode::Normal,
             offset_row: 0,
             rng: 0,
@@ -161,18 +153,6 @@ impl App {
             self.untag_prev(&tag_prev, row - 1);
         }
     }
-
-    pub fn is_modal_mode(&self) -> bool {
-        self.mode == Mode::Modal
-    }
-
-    pub fn set_color_mode(&mut self) {
-        self.mode = Mode::Color;
-    }
-
-    pub fn set_modal_mode(&mut self) {
-        self.mode = Mode::Modal;
-    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -213,7 +193,6 @@ pub struct Line {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum Mode {
-    Color,
     Command,
     Modal,
     Name,
