@@ -10,7 +10,7 @@ pub mod normal;
 pub mod render;
 pub mod visual;
 
-use std::io::Stdout;
+use std::io::{Stdout, Write};
 
 use clap::Parser;
 use crossterm::{event::{read, Event, KeyCode, KeyModifiers}, queue, terminal};
@@ -79,8 +79,8 @@ fn main() -> std::io::Result<()> {
                 },
             Mode::Name =>
                 match keycode {
-                    c@'!'..='~' => name::handle_key(c, &mut app, &mut stdout)?,
-                    '\x08' => name::handle_08(&mut app, &mut stdout)?,
+                    c@'!'..='~' => app.name_key(c),
+                    '\x08' => app.name_backspace(),
 
                     '\x0a' => common::handle_1b(&mut app, &mut stdout)?,
                     '\x1b' => common::handle_1b(&mut app, &mut stdout)?,
@@ -152,7 +152,9 @@ fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     queue!(stdout, helper::move_to(app.cursor_column, app.cursor_row))?;
 
     render::render_offset(app, stdout)?;
-    render::render_status(app, stdout)
+    render::render_status(app, stdout)?;
+
+    stdout.flush()
 }
 
 fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -169,12 +171,7 @@ fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         }
     }
 
-    // on error
-    // - write debug log
-    // - restore screen
-    // - write error message pointing to debug log
-
-    Ok(())
+    stdout.flush()
 }
 
 fn extract_keycode() -> std::io::Result<char> {

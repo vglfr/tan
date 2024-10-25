@@ -40,6 +40,7 @@ pub struct App {
     pub labels: Vec<Label>,
     pub lines: Vec<Line>,
     pub modal_active: usize,
+    pub modal_column: usize,
     pub modal_row: usize,
     pub modal_start_column: usize,
     pub modal_start_row: usize,
@@ -65,6 +66,7 @@ impl App {
             labels,
             lines,
             modal_active: 0,
+            modal_column: 0,
             modal_row: 0,
             modal_start_column: 0,
             modal_start_row: 0,
@@ -77,15 +79,14 @@ impl App {
         }
     }
 
-    // u8 00000000
-    //           ^ app.status
-    //          ^ app.offset_row
-    //         ^ app.cursor_column
-    //        ^ app.cursor_row
+    // u8 0000 0000
+    //            ^ app.status
+    //           ^ app.offset_row
+    //          ^ app.cursor_column
+    //         ^ app.cursor_row
+
     //       ^ app.modal
     //      ^ app.command
-    //     ^ app.color
-    //    ^ app.name
     pub fn get_change_flags(&mut self) -> Vec<Change> {
         let mut flags = Vec::new();
 

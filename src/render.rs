@@ -1,6 +1,6 @@
-use std::io::{Stdout, Write};
+use std::io::Stdout;
 
-use crossterm::{cursor, execute, queue, style::{self, Color}, terminal::{self, ClearType}};
+use crossterm::{cursor, queue, style::{self, Color}, terminal::{self, ClearType}};
 use serde::{Deserialize, Serialize};
 
 use crate::{app::{App, Label, Line}, helper};
@@ -19,14 +19,14 @@ struct OffsetChunk {
 
 pub fn render_cursor(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     let cursor_column = if app.get_current_line().is_virtual { app.cursor_column + 2 } else { app.cursor_column };
-    execute!(stdout, helper::move_to(cursor_column, app.cursor_row))
+    queue!(stdout, helper::move_to(cursor_column, app.cursor_row))
 }
 
 pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let lines = chunk_lines(app);
+    let lines = chunk_modal_lines(app);
 
-    execute!(stdout, cursor::SavePosition)?;
-    queue!(stdout, helper::move_to(app.modal_start_column - 1, app.modal_start_row))?;
+    queue!(stdout, cursor::SavePosition)?;
+    queue!(stdout, helper::move_to(app.modal_start_column, app.modal_start_row))?;
 
     for (i, line) in lines.iter().enumerate() {
         for chunk in line {
@@ -39,13 +39,10 @@ pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         }
 
         queue!(stdout, cursor::MoveDown(1))?;
-        queue!(stdout, helper::move_to_column(app.modal_start_column - 1))?;
+        queue!(stdout, helper::move_to_column(app.modal_start_column))?;
     }
 
-    execute!(stdout, cursor::RestorePosition)?;
-    stdout.flush()?;
-
-    Ok(())
+    queue!(stdout, cursor::RestorePosition)
 }
 
 pub fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
@@ -79,18 +76,20 @@ pub fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 
     let cursor_column = if app.get_current_line().is_virtual { app.cursor_column + 2 } else { app.cursor_column };
-    queue!(stdout, helper::move_to(cursor_column, app.cursor_row))?;
-
-    stdout.flush()
+    queue!(stdout, helper::move_to(cursor_column, app.cursor_row))
 }
 
-pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn clear_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     queue!(
         stdout,
         helper::move_to(0, app.window_height - 1),
         style::SetBackgroundColor(Color::Reset),
-        style::Print("                                                                                 "),
-    )?;
+        style::Print(format!("{:width$}", "", width=app.window_width - 1)),
+    )
+}
+
+pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    clear_status(app, stdout)?;
 
     if app.is_visual_mode() {
         queue!(
@@ -131,46 +130,30 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
 
     let status = format!(
         "{}% {}:{}",
-        (app.cursor_row + app.offset_row) / app.nlines,
+        (app.cursor_row + app.offset_row) * 100 / app.nlines,
         app.cursor_row + app.offset_row,
         app.cursor_column,
     );
 
     queue!(
         stdout,
-        helper::move_to(70, app.window_height - 1),
+        helper::move_to(app.window_width - status.len() - 1, app.window_height - 1),
         style::SetBackgroundColor(Color::Reset),
         style::Print(status),
     )?;
 
-    queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row))?;
-
-    stdout.flush()
+    queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row))
 }
 
 pub fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    queue!(
-        stdout,
-        helper::move_to(0, app.window_height - 1),
-        style::SetBackgroundColor(Color::Reset),
-        style::Print("                                                                                 "),
-    )?;
+    clear_status(app, stdout)?;
 
     queue!(
         stdout,
         helper::move_to(0, app.window_height - 1),
         style::SetBackgroundColor(Color::Reset),
-        style::Print(":"),
-    )?;
-
-    queue!(
-        stdout,
-        helper::move_to(1, app.window_height - 1),
-        style::SetBackgroundColor(Color::Reset),
-        style::Print(&app.command),
-    )?;
-
-    stdout.flush()
+        style::Print(format!(":{}", app.command)),
+    )
 }
 
 fn chunk_line(line: &Line, app: &App) -> Vec<OffsetChunk> {
@@ -211,20 +194,19 @@ fn chunk_line(line: &Line, app: &App) -> Vec<OffsetChunk> {
     chunks
 }
 
-fn chunk_lines(app: &mut App) -> Vec<Vec<ModalChunk>> {
-    let width = app.labels.iter().fold(0, |acc, x| std::cmp::max(acc, x.name.len()));
-    let mut lines = app.labels.iter().map(|x| chunk_label(x, width)).collect::<Vec<Vec<ModalChunk>>>();
+fn chunk_modal_lines(app: &mut App) -> Vec<Vec<ModalChunk>> {
+    let mut lines = app.labels.iter().map(chunk_label).collect::<Vec<Vec<ModalChunk>>>();
 
-    lines.insert(0, vec![ModalChunk { text: format!("{:width$}", "", width=width+20), color: Color::Black }]);
-    lines.push(vec![ModalChunk { text: format!("{:width$}", "", width=width+20), color: Color::Black }]);
+    lines.insert(0, vec![ModalChunk { text: format!("{:width$}", "", width=42), color: Color::Black }]);
+    lines.push(vec![ModalChunk { text: format!("{:width$}", "", width=42), color: Color::Black }]);
 
-    app.modal_start_column = (app.window_width - lines[0][0].text.len()) / 2;
-    app.modal_start_row = (app.window_height - lines.len()) / 2;
+    app.modal_start_column = app.window_width / 2 - 20;
+    app.modal_start_row = app.window_height / 2 - 20;
 
     lines
 }
 
-fn chunk_label(label: &Label, width: usize) -> Vec<ModalChunk> {
+fn chunk_label(label: &Label) -> Vec<ModalChunk> {
     let mut chunks = Vec::new();
 
     chunks.push(ModalChunk { text: "  ".to_owned(), color: Color::Black });
@@ -233,7 +215,7 @@ fn chunk_label(label: &Label, width: usize) -> Vec<ModalChunk> {
     chunks.push(ModalChunk { text: "  ".to_owned(), color: Color::Black });
     chunks.push(ModalChunk { text: "        ".to_owned(), color: label.color });
     chunks.push(ModalChunk { text: "    ".to_owned(), color: Color::Black });
-    chunks.push(ModalChunk { text: format!("{:width$}", label.name, width=width), color: Color::Black });
+    chunks.push(ModalChunk { text: format!("{:width$}", label.name, width=24), color: Color::Black });
     chunks.push(ModalChunk { text: "  ".to_owned(), color: Color::Black });
 
     chunks

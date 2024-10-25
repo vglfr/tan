@@ -37,13 +37,17 @@ Tasks:
 + multiline tagging
 + fix modal render
 + fix status styling
++ Coralie demo
 
 - fix modal width & height
 - make dissapeareable (8 seconds?) error messages at status
 - overlapping untag
 - finish refactoring (several impls, remaining methods)
 
-- Coralie demo
+- on error:
+  - write debug log
+  - restore screen
+  - write error message pointing to debug log
 
 - terminal resize
 - handle c-u c-w in command / name mode

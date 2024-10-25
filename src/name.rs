@@ -1,8 +1,4 @@
-use std::io::Stdout;
-
-use crossterm::{cursor, execute};
-
-use crate::{app::{App, Mode}, render};
+use crate::app::{App, Mode};
 
 impl App {
     pub fn is_name_mode(&self) -> bool {
@@ -10,30 +6,29 @@ impl App {
     }
 
     pub fn set_name_mode(&mut self) {
+        self.modal_column = self.modal_start_column + self.labels[self.modal_row].name.len() + 12;
         self.mode = Mode::Name;
     }
-}
 
-pub fn handle_key(c: char, app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    app.labels[app.modal_row].name.push(c);
-    let modal_start_column = app.modal_start_column;
+    pub fn name_backspace(&mut self) {
+        let name = &mut self.labels[self.modal_row].name;
 
-    render::render_modal(app, stdout)?;
-    if app.modal_start_column == modal_start_column { execute!(stdout, cursor::MoveRight(1)) } else { Ok(()) }
-}
+        if !name.is_empty() {
+            name.pop();
 
-pub fn handle_08(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let name = &mut app.labels[app.modal_row].name;
-    
-    if !name.is_empty() {
-        name.pop();
-        let modal_start_column = app.modal_start_column;
+            self.modal_column -= 1;
+            self.change |= 0b_0001_0001;
+        }
+    }
 
-        render::render_offset(app, stdout)?;
-        render::render_modal(app, stdout)?;
+    pub fn name_key(&mut self, c: char) {
+        let name = &mut self.labels[self.modal_row].name;
 
-        if app.modal_start_column == modal_start_column { execute!(stdout, cursor::MoveLeft(1)) } else { Ok(()) }
-    } else {
-        Ok(())
+        if name.len() < 24 {
+            name.push(c);
+
+            self.modal_column += 1;
+            self.change |= 0b_0001_0001;
+        }
     }
 }

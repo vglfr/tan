@@ -252,7 +252,7 @@ pub fn handle_t(app: &mut App) {
 
 pub fn handle_1b(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     app.set_modal_mode();
-    execute!(stdout, cursor::Hide)?;
+    // execute!(stdout, cursor::Hide)?;
 
     render::render_offset(app, stdout)?;
     render::render_modal(app, stdout)
