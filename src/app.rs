@@ -74,26 +74,6 @@ impl App {
         }
     }
 
-    // u8 0000 0000
-    //            ^ app.status
-    //           ^ app.offset_row
-    //          ^ app.cursor_column
-    //         ^ app.cursor_row
-
-    //       ^ app.modal
-    //      ^ app.command
-    pub fn get_change_flags(&mut self) -> Vec<Change> {
-        let mut flags = Vec::new();
-
-        if self.change & 0b_0000_0010 > 0 { flags.push(Change::Offset); }
-        if self.change & 0b_0001_0000 > 0 { flags.push(Change::Modal); }
-        if self.change & 0b_0000_0001 > 0 { flags.push(Change::Status); }
-        if self.change & 0b_0010_0000 > 0 { flags.push(Change::Command); }
-        if self.change & 0b_0000_1100 > 0 { flags.push(Change::Cursor); }
-
-        flags
-    }
-
     pub fn get_visual_bounds(&self, row: usize) -> (usize, usize) {
         self.visual.iter()
             .find(|x| x.row == row)
@@ -153,15 +133,6 @@ impl App {
             self.untag_prev(&tag_prev, row - 1);
         }
     }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Change {
-    Command,
-    Cursor,
-    Offset,
-    Status,
-    Modal,
 }
 
 #[derive(Clone, Debug, PartialEq, ValueEnum)]

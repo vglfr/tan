@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 
+use anyhow::Result;
 use crossterm::{style::Color, terminal};
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -30,22 +31,31 @@ struct Ent {
 
 type Accumulator = (Vec<Line>, usize, usize);
 type Enumerate = (usize, String);
+type Pair = (usize, usize);
 
 #[allow(private_interfaces)]
-pub fn load_file(argv: &Argv) -> std::io::Result<App> {
-    match argv.format {
+pub fn load_file(argv: &Argv) -> Result<App> {
+    let format = argv.format.clone()
+        .unwrap_or_else(||
+            if argv.name.ends_with(".tan") { FType::Tan }
+            else if argv.name.ends_with(".json") { FType::Spacy }
+            else { FType::Raw }
+        );
+
+    match format {
         FType::Raw => load_raw(&argv.name),
         FType::Spacy => load_spacy(&argv.name),
         FType::Tan => load_tan(&argv.name),
     }
 }
 
-fn load_raw(filename: &str) -> std::io::Result<App> {
+fn load_raw(filename: &str) -> Result<App> {
     let window = terminal::window_size()?;
     
-    let lines = read_raw(filename).unwrap()
+    let lines = read_raw(filename)?
         .lines()
         .enumerate()
+        // .fold((Vec::new(), 0, window.columns as usize - 2), virtualize_line)
         .fold((Vec::new(), 0, window.columns as usize - 2), |acc, (i, x)| virtualize_line(acc, (i, x.unwrap())))
         .0;
     let labels = vec![Label { name: "label1".to_owned(), color: Color::Red, is_active: true, is_visible: true }];
@@ -53,7 +63,7 @@ fn load_raw(filename: &str) -> std::io::Result<App> {
     Ok(App::new(filename, lines, labels, window))
 }
 
-fn load_spacy(filename: &str) -> std::io::Result<App> {
+fn load_spacy(filename: &str) -> Result<App> {
     let window = terminal::window_size()?;
 
     let (text, ents, labels) = read_spacy(filename)?;
@@ -67,9 +77,9 @@ fn load_spacy(filename: &str) -> std::io::Result<App> {
     Ok(App::new(filename, lines, labels, window))
 }
 
-fn load_tan(filename: &str) -> std::io::Result<App> {
+fn load_tan(filename: &str) -> Result<App> {
     let s = std::fs::read_to_string(filename)?;
-    serde_json::from_str(&s).map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "oh no!"))
+    serde_json::from_str(&s).map_err(anyhow::Error::from)
 }
 
 fn read_raw(filename: &str) -> std::io::Result<BufReader<File>> {
@@ -77,7 +87,7 @@ fn read_raw(filename: &str) -> std::io::Result<BufReader<File>> {
     Ok(BufReader::new(f))
 }
 
-fn read_spacy(filename: &str) -> std::io::Result<(String, Vec<Ent>, Vec<Label>)> {
+fn read_spacy(filename: &str) -> Result<(String, Vec<Ent>, Vec<Label>)> {
     let f = File::open(filename)?;
     let mut b = BufReader::new(f);
 
@@ -161,8 +171,6 @@ fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> 
     lines
 }
 
-type Pair = (usize, usize);
-
 fn has_interval_overlap(tag: Pair, line: Pair) -> bool {
     let (tag_start, tag_end) = tag;
     let (line_start, line_end) = line;
@@ -241,7 +249,7 @@ fn parse_labels(ents: &Vec<Ent>) -> Vec<Label> {
     labels
 }
 
-pub fn save_tan(app: &mut App) -> std::io::Result<()> {
+pub fn save_tan(app: &mut App) -> Result<()> {
     let mode = app.mode.clone();
     app.set_normal_mode();
 
@@ -255,7 +263,7 @@ pub fn save_tan(app: &mut App) -> std::io::Result<()> {
     Ok(())
 }
 
-pub fn dump_debug(app: &App) -> std::io::Result<()> {
-    let mut f = File::create("/tmp/dbg.json").unwrap();
-    f.write_all(serde_json::to_string(app).unwrap().as_bytes())
+pub fn dump_debug(app: &App) -> Result<()> {
+    let mut f = File::create("/tmp/dbg.json")?;
+    f.write_all(serde_json::to_string(app)?.as_bytes()).map_err(anyhow::Error::from)
 }

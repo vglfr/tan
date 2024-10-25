@@ -10,8 +10,12 @@ impl App {
         self.mode = Mode::Name;
     }
 
+    fn get_active_label_name(&mut self) -> &mut String {
+        &mut self.labels[self.modal_row].name
+    }
+
     pub fn name_backspace(&mut self) {
-        let name = &mut self.labels[self.modal_row].name;
+        let name = self.get_active_label_name();
 
         if !name.is_empty() {
             name.pop();
@@ -22,7 +26,7 @@ impl App {
     }
 
     pub fn name_char(&mut self, c: char) {
-        let name = &mut self.labels[self.modal_row].name;
+        let name = self.get_active_label_name();
 
         if name.len() < 20 {
             name.push(c);

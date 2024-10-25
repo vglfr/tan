@@ -1,8 +1,8 @@
-use std::io::{Stdout, Write};
+use std::io::Stdout;
 
-use crossterm::{cursor, queue, terminal};
+use anyhow::Result;
 
-use crate::{app::{App, Mode}, io};
+use crate::{app::{App, Mode}, io, render};
 
 impl App {
     pub fn is_command_mode(&self) -> bool {
@@ -31,7 +31,7 @@ impl App {
         self.change |= 0b_0000_0001;
     }
 
-    pub fn command_return(&mut self, stdout: &mut Stdout) -> std::io::Result<()> {
+    pub fn command_return(&mut self, stdout: &mut Stdout) -> Result<()> {
         self.change |= 0b0001;
         match self.command.as_str() {
             "q" | "quit" => execute_exit(stdout),
@@ -43,24 +43,19 @@ impl App {
 }
 
 #[allow(unreachable_code)]
-fn execute_exit(stdout: &mut Stdout) -> std::io::Result<()> {
-    queue!(stdout, terminal::LeaveAlternateScreen)?;
-    queue!(stdout, cursor::Show)?;
-
-    terminal::disable_raw_mode()?;
-    stdout.flush()?;
-
+fn execute_exit(stdout: &mut Stdout) -> Result<()> {
+    render::render_terminal(stdout)?;
     std::process::exit(0);
     Ok(())
 }
 
-fn execute_write(app: &mut App) -> std::io::Result<()> {
+fn execute_write(app: &mut App) -> Result<()> {
     app.command.clear();
     app.set_normal_mode();
     io::save_tan(app)
 }
 
-fn execute_debug(app: &mut App) -> std::io::Result<()> {
+fn execute_debug(app: &mut App) -> Result<()> {
     app.command.clear();
     app.set_normal_mode();
     io::dump_debug(app)

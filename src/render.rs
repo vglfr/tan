@@ -1,9 +1,18 @@
-use std::io::Stdout;
+use std::io::{Stdout, Write};
 
 use crossterm::{cursor, queue, style::{self, Color}, terminal::{self, ClearType}};
 use serde::{Deserialize, Serialize};
 
 use crate::{app::{self, App, Label, Line}, helper};
+
+#[derive(Debug, PartialEq)]
+enum Change {
+    Command,
+    Cursor,
+    Offset,
+    Status,
+    Modal,
+}
 
 #[derive(Clone)]
 struct ModalChunk {
@@ -19,7 +28,64 @@ struct OffsetChunk {
     color: Color,
 }
 
-pub fn render_cursor(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    terminal::enable_raw_mode()?;
+
+    queue!(stdout, terminal::EnterAlternateScreen)?;
+    queue!(stdout, helper::move_to(app.cursor_column, app.cursor_row))?;
+
+    render_offset(app, stdout)?;
+    render_status(app, stdout)?;
+
+    stdout.flush()
+}
+
+pub fn render_terminal(stdout: &mut Stdout) -> std::io::Result<()> {
+    queue!(stdout, terminal::LeaveAlternateScreen)?;
+    queue!(stdout, cursor::Show)?;
+
+    terminal::disable_raw_mode()?;
+    stdout.flush()
+}
+
+pub fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+    let flags = get_change_flags(app);
+    app.change = 0;
+
+    for flag in &flags {
+        match flag {
+            Change::Cursor => render_cursor(app, stdout)?,
+            Change::Modal => render_modal(app, stdout)?,
+            Change::Offset => render_offset(app, stdout)?,
+            Change::Command => render_command(app, stdout)?,
+            Change::Status => render_status(app, stdout)?,
+        }
+    }
+
+    stdout.flush()
+}
+
+// u8 0000 0000
+//            ^ app.status
+//           ^ app.offset_row
+//          ^ app.cursor_column
+//         ^ app.cursor_row
+
+//       ^ app.modal
+//      ^ app.command
+fn get_change_flags(app: &mut App) -> Vec<Change> {
+    let mut flags = Vec::new();
+
+    if app.change & 0b_0000_0010 > 0 { flags.push(Change::Offset); }
+    if app.change & 0b_0001_0000 > 0 { flags.push(Change::Modal); }
+    if app.change & 0b_0000_0001 > 0 { flags.push(Change::Status); }
+    if app.change & 0b_0010_0000 > 0 { flags.push(Change::Command); }
+    if app.change & 0b_0000_1100 > 0 { flags.push(Change::Cursor); }
+
+    flags
+}
+
+fn render_cursor(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     if app.is_name_mode() {
         queue!(stdout, helper::move_to(app.modal_column, app.modal_start_row + app.modal_row + 1))
     } else {
@@ -28,7 +94,7 @@ pub fn render_cursor(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 }
 
-pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     let lines = chunk_modal_lines(app);
 
     // queue!(stdout, cursor::SavePosition)?;
@@ -54,7 +120,7 @@ pub fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     // queue!(stdout, cursor::RestorePosition)
 }
 
-pub fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     queue!(stdout, terminal::Clear(ClearType::All))?;
 
     let start = app.offset_row as usize;
@@ -97,7 +163,7 @@ fn clear_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     )
 }
 
-pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     clear_status(app, stdout)?;
 
     if app.is_visual_mode() {
@@ -154,7 +220,7 @@ pub fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> 
     queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row))
 }
 
-pub fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     clear_status(app, stdout)?;
 
     queue!(

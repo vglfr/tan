@@ -9,28 +9,27 @@ pub mod normal;
 pub mod render;
 pub mod visual;
 
-use std::io::{Stdout, Write};
-
+use anyhow::Result;
 use clap::Parser;
-use crossterm::{event::{read, Event, KeyCode, KeyModifiers}, queue, terminal};
+use crossterm::event::{read, Event, KeyCode, KeyModifiers};
 
-use app::{App, Change, FType, Mode};
+use app::{FType, Mode};
 
 #[derive(Debug, Parser)]
 #[command(version)]
 struct Argv {
-    #[clap(default_value = "data/test3.json")]
+    #[clap(default_value = "data/test3..json")]
     name: String,
-    #[clap(short, long, value_enum, default_value_t = FType::Spacy)]
-    format: FType,
+    #[clap(short, long, value_enum)]
+    format: Option<FType>,
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> Result<()> {
     let argv = Argv::parse();
     let mut app = io::load_file(&argv)?;
 
     let mut stdout = std::io::stdout();
-    render_initial(&mut app, &mut stdout)?;
+    render::render_initial(&mut app, &mut stdout)?;
 
     loop {
         let keycode = extract_keycode()?;
@@ -129,37 +128,8 @@ fn main() -> std::io::Result<()> {
                 },
         }
 
-        render_event(&mut app, &mut stdout)?;
+        render::render_event(&mut app, &mut stdout)?;
     }
-}
-
-fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    terminal::enable_raw_mode()?;
-
-    queue!(stdout, terminal::EnterAlternateScreen)?;
-    queue!(stdout, helper::move_to(app.cursor_column, app.cursor_row))?;
-
-    render::render_offset(app, stdout)?;
-    render::render_status(app, stdout)?;
-
-    stdout.flush()
-}
-
-fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
-    let flags = app.get_change_flags();
-    app.change = 0;
-
-    for flag in &flags {
-        match flag {
-            Change::Cursor => render::render_cursor(app, stdout)?,
-            Change::Modal => render::render_modal(app, stdout)?,
-            Change::Offset => render::render_offset(app, stdout)?,
-            Change::Command => render::render_command(app, stdout)?,
-            Change::Status => render::render_status(app, stdout)?,
-        }
-    }
-
-    stdout.flush()
 }
 
 fn extract_keycode() -> std::io::Result<char> {
