@@ -136,7 +136,9 @@ fn virtualize_line(acc: Accumulator, item: Enumerate) -> Accumulator {
 
 fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> Vec<Line> {
     for ent in ents {
-        let label = labels.iter().position(|x| x.name == ent.label).unwrap();
+        let label = labels.iter()
+            .position(|x| x.name == ent.label)
+            .expect(format!("Cannot find label named {}", ent.label).as_ref());
 
         let intervals = lines.iter().enumerate()
             .filter(|(_,x)| {
@@ -234,7 +236,7 @@ fn parse_labels(ents: &Vec<Ent>) -> Vec<Label> {
         if !labels.iter().map(|x: &Label| &x.name).contains(&ent.label) {
             let label = Label {
                 name: ent.label.chars().take(20).collect(),
-                color: *colors.next().unwrap(),
+                color: *colors.next().expect("Error looping over colors"),
                 is_active: if labels.is_empty() { true } else { false },
                 is_visible: true,
             };

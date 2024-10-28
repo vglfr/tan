@@ -15,7 +15,7 @@ impl App {
     }
 
     pub fn modal_h(&mut self) {
-        let old = app::COLORS.iter().position(|x| x == &self.labels[self.modal_row].color).unwrap();
+        let old = self.get_label_color();
         let new = (old as i8 - 1).rem_euclid(18) as usize;
 
         self.labels[self.modal_row].color = app::COLORS[new];
@@ -37,7 +37,7 @@ impl App {
     }
 
     pub fn modal_l(&mut self) {
-        let old = app::COLORS.iter().position(|x| x == &self.labels[self.modal_row].color).unwrap();
+        let old = self.get_label_color();
         let new = (old + 1).rem_euclid(18);
 
         self.labels[self.modal_row].color = app::COLORS[new];
@@ -108,5 +108,11 @@ impl App {
 
         self.labels[self.modal_active].is_active = true;
         self.change |= 0b_0001_1000;
+    }
+
+    fn get_label_color(&self) -> usize {
+        app::COLORS.iter()
+            .position(|x| x == &self.labels[self.modal_row].color)
+            .expect("Error retrieving label color")
     }
 }

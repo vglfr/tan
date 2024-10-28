@@ -129,7 +129,7 @@ impl App {
 
     fn untag_prev(&mut self, tag: &Tag, row: usize) {
         if tag.has_line_prev {
-            let tag_prev = self.lines[row - 1].tags.pop().unwrap();
+            let tag_prev = self.lines[row - 1].tags.pop().expect("Error dereferencing previous tag");
             self.untag_prev(&tag_prev, row - 1);
         }
     }
