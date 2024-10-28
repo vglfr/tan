@@ -18,7 +18,7 @@ use app::{FType, Mode};
 #[derive(Debug, Parser)]
 #[command(version)]
 struct Argv {
-    #[clap(default_value = "data/test3..json")]
+    #[clap(default_value = "data/test2.txt")]
     name: String,
     #[clap(short, long, value_enum)]
     format: Option<FType>,

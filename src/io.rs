@@ -52,11 +52,13 @@ pub fn load_file(argv: &Argv) -> Result<App> {
 fn load_raw(filename: &str) -> Result<App> {
     let window = terminal::window_size()?;
     
-    let lines = read_raw(filename)?
+    let lines = File::open(filename)
+        .map(BufReader::new)?
         .lines()
+        .fold_ok(Vec::new(), |mut acc, x| { acc.push(x); acc })?
+        .into_iter()
         .enumerate()
-        // .fold((Vec::new(), 0, window.columns as usize - 2), virtualize_line)
-        .fold((Vec::new(), 0, window.columns as usize - 2), |acc, (i, x)| virtualize_line(acc, (i, x.unwrap())))
+        .fold((Vec::new(), 0, window.columns as usize - 2), virtualize_line)
         .0;
     let labels = vec![Label { name: "label1".to_owned(), color: Color::Red, is_active: true, is_visible: true }];
 
@@ -67,10 +69,10 @@ fn load_spacy(filename: &str) -> Result<App> {
     let window = terminal::window_size()?;
 
     let (text, ents, labels) = read_spacy(filename)?;
-    let bare_lines = text
-        .split("\n")
+    let bare_lines = text.split("\n")
+        .map(|x| x.to_owned())
         .enumerate()
-        .fold((Vec::new(), 0, window.columns as usize - 2), |acc, (i, x)| virtualize_line(acc, (i, x.to_owned())))
+        .fold((Vec::new(), 0, window.columns as usize - 2), virtualize_line)
         .0;
     let lines = assign_labels(bare_lines, &ents, &labels);
 
@@ -80,11 +82,6 @@ fn load_spacy(filename: &str) -> Result<App> {
 fn load_tan(filename: &str) -> Result<App> {
     let s = std::fs::read_to_string(filename)?;
     serde_json::from_str(&s).map_err(anyhow::Error::from)
-}
-
-fn read_raw(filename: &str) -> std::io::Result<BufReader<File>> {
-    let f = File::open(filename)?;
-    Ok(BufReader::new(f))
 }
 
 fn read_spacy(filename: &str) -> Result<(String, Vec<Ent>, Vec<Label>)> {
