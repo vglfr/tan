@@ -12,13 +12,14 @@ pub mod visual;
 use anyhow::Result;
 use clap::Parser;
 use crossterm::event::{read, Event, KeyCode, KeyModifiers};
+use tap::Tap;
 
 use app::{FType, Mode};
 
 #[derive(Debug, Parser)]
 #[command(version)]
 struct Argv {
-    #[clap(default_value = "data/test2.txt")]
+    #[clap(default_value = "data/test3.json")]
     name: String,
     #[clap(short, long, value_enum)]
     format: Option<FType>,
@@ -32,7 +33,8 @@ fn main() -> Result<()> {
     render::render_initial(&mut app, &mut stdout)?;
 
     loop {
-        let keycode = extract_keycode()?;
+        let keycode = extract_keycode()
+            .tap(|_| render::render_terminal(&mut stdout))?;
 
         match app.mode {
             Mode::Command =>
@@ -40,7 +42,7 @@ fn main() -> Result<()> {
                     c@'!'..='~' => app.command_char(c),
                     '\x08' => app.command_backspace(),
 
-                    '\x0a' => app.command_return(&mut stdout)?,
+                    '\x0a' => app.command_return(&mut stdout).tap(|_| render::render_terminal(&mut stdout))?,
                     '\x1b' => app.command_esc(),
 
                     _ => (),
@@ -69,8 +71,8 @@ fn main() -> Result<()> {
                     c@'!'..='~' => app.name_char(c),
                     '\x08' => app.name_backspace(),
 
-                    '\x0a' => common::handle_esc(&mut app),
-                    '\x1b' => common::handle_esc(&mut app),
+                    '\x0a' => app.name_esc(),
+                    '\x1b' => app.name_esc(),
 
                     _ => (),
                 },
@@ -85,23 +87,23 @@ fn main() -> Result<()> {
                     'k' => app.normal_k(),
                     'l' => app.normal_l(),
 
-                    'H' => common::handle_H(&mut app),
-                    'M' => common::handle_M(&mut app),
-                    'L' => common::handle_L(&mut app),
+                    'H' => app.normal_H(),
+                    'M' => app.normal_M(),
+                    'L' => app.normal_L(),
 
-                    '\x11' => common::handle_pg_down(&mut app),
-                    '\x12' => common::handle_pg_up(&mut app),
+                    '\x11' => app.normal_pg_down(),
+                    '\x12' => app.normal_pg_up(),
 
                     's' => app.normal_s(),
                     'e' => app.normal_e(),
 
-                    'S' => common::handle_S(&mut app),
-                    'E' => common::handle_E(&mut app),
+                    'S' => app.normal_S(),
+                    'E' => app.normal_E(),
 
                     'w' => app.normal_w(),
                     'b' => app.normal_b(),
 
-                    't' => common::handle_t(&mut app),
+                    't' => app.common_t(),
                     'u' => app.normal_u(),
 
                     _ => (),
@@ -123,16 +125,16 @@ fn main() -> Result<()> {
                     'w' => app.visual_w(),
                     'b' => app.visual_b(),
 
-                    't' => common::handle_t(&mut app),
+                    't' => app.common_t(),
                     _ => (),
                 },
         }
 
-        render::render_event(&mut app, &mut stdout)?;
+        render::render_event(&mut app, &mut stdout).tap(|_| render::render_terminal(&mut stdout))?;
     }
 }
 
-fn extract_keycode() -> std::io::Result<char> {
+fn extract_keycode() -> Result<char> {
     match read()? {
         Event::Key(event) => match event.code {
             KeyCode::Char(c) => match c {
@@ -144,8 +146,9 @@ fn extract_keycode() -> std::io::Result<char> {
             KeyCode::Backspace => Ok('\x08'),
             KeyCode::Enter => Ok('\x0a'),
             KeyCode::Esc => Ok('\x1b'),
-            _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap1!")),
+            _ => Ok('\x00'),
         }
-        _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "snap2!")),
+        Event::Resize(..) => Err(anyhow::Error::msg("Window resize is currently not supported")),
+        _ => Ok('\x00'),
     }
 }

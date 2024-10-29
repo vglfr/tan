@@ -44,7 +44,7 @@ impl App {
 
 #[allow(unreachable_code)]
 fn execute_exit(stdout: &mut Stdout) -> Result<()> {
-    render::render_terminal(stdout)?;
+    render::render_terminal(stdout);
     std::process::exit(0);
     Ok(())
 }

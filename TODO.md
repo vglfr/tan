@@ -40,11 +40,12 @@ Tasks:
 + Coralie demo
 + fix modal width & height
 + refactor color mode
++ handle resizing
++ error messages
++ finish refactoring
 
 - fix blinking
 - overlapping untag
-- error messages
-- finish refactoring
 
 - terminal resize
 - handle c-u c-w in command / name mode

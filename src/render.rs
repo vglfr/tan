@@ -1,5 +1,6 @@
 use std::io::{Stdout, Write};
 
+use anyhow::Result;
 use crossterm::{cursor, queue, style::{self, Color}, terminal::{self, ClearType}};
 use serde::{Deserialize, Serialize};
 
@@ -28,7 +29,7 @@ struct OffsetChunk {
     color: Color,
 }
 
-pub fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn render_initial(app: &mut App, stdout: &mut Stdout) -> Result<()> {
     terminal::enable_raw_mode()?;
 
     queue!(stdout, terminal::EnterAlternateScreen)?;
@@ -37,18 +38,18 @@ pub fn render_initial(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()>
     render_offset(app, stdout)?;
     render_status(app, stdout)?;
 
-    stdout.flush()
+    stdout.flush().map_err(anyhow::Error::from)
 }
 
-pub fn render_terminal(stdout: &mut Stdout) -> std::io::Result<()> {
-    queue!(stdout, terminal::LeaveAlternateScreen)?;
-    queue!(stdout, cursor::Show)?;
+pub fn render_terminal(stdout: &mut Stdout) {
+    queue!(stdout, terminal::LeaveAlternateScreen).expect("Error leaving alternate screen");
+    queue!(stdout, cursor::Show).expect("Error showing cursor");
 
-    terminal::disable_raw_mode()?;
-    stdout.flush()
+    terminal::disable_raw_mode().expect("Error disabling raw mode");
+    stdout.flush().expect("Error flushing stdout")
 }
 
-pub fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+pub fn render_event(app: &mut App, stdout: &mut Stdout) -> Result<()> {
     let flags = get_change_flags(app);
     app.change = 0;
 
@@ -62,17 +63,19 @@ pub fn render_event(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         }
     }
 
-    stdout.flush()
+    stdout.flush().map_err(anyhow::Error::from)
 }
 
-// u8 0000 0000
-//            ^ app.status
-//           ^ app.offset_row
-//          ^ app.cursor_column
-//         ^ app.cursor_row
+/*
+  u8 0000 0000
+             ^ app.status
+            ^ app.offset_row
+           ^ app.cursor_column
+          ^ app.cursor_row
 
-//       ^ app.modal
-//      ^ app.command
+        ^ app.modal
+       ^ app.command
+*/
 fn get_change_flags(app: &mut App) -> Vec<Change> {
     let mut flags = Vec::new();
 
@@ -85,16 +88,16 @@ fn get_change_flags(app: &mut App) -> Vec<Change> {
     flags
 }
 
-fn render_cursor(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn render_cursor(app: &App, stdout: &mut Stdout) -> Result<()> {
     if app.is_name_mode() {
-        queue!(stdout, helper::move_to(app.modal_column, app.modal_start_row + app.modal_row + 1))
+        queue!(stdout, helper::move_to(app.modal_column, app.modal_start_row + app.modal_row + 1)).map_err(anyhow::Error::from)
     } else {
         let cursor_column = if app.get_current_line().is_virtual { app.cursor_column + 2 } else { app.cursor_column };
-        queue!(stdout, helper::move_to(cursor_column, app.cursor_row))
+        queue!(stdout, helper::move_to(cursor_column, app.cursor_row)).map_err(anyhow::Error::from)
     }
 }
 
-fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn render_modal(app: &mut App, stdout: &mut Stdout) -> Result<()> {
     let lines = chunk_modal_lines(app);
 
     // queue!(stdout, cursor::SavePosition)?;
@@ -120,7 +123,7 @@ fn render_modal(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
     // queue!(stdout, cursor::RestorePosition)
 }
 
-fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn render_offset(app: &App, stdout: &mut Stdout) -> Result<()> {
     queue!(stdout, terminal::Clear(ClearType::All))?;
 
     let start = app.offset_row as usize;
@@ -151,19 +154,19 @@ fn render_offset(app: &App, stdout: &mut Stdout) -> std::io::Result<()> {
     }
 
     let cursor_column = if app.get_current_line().is_virtual { app.cursor_column + 2 } else { app.cursor_column };
-    queue!(stdout, helper::move_to(cursor_column, app.cursor_row))
+    queue!(stdout, helper::move_to(cursor_column, app.cursor_row)).map_err(anyhow::Error::from)
 }
 
-fn clear_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn clear_status(app: &mut App, stdout: &mut Stdout) -> Result<()> {
     queue!(
         stdout,
         helper::move_to(0, app.window_height - 1),
         style::SetBackgroundColor(Color::Reset),
         style::Print(format!("{:width$}", "", width=app.window_width - 1)),
-    )
+    ).map_err(anyhow::Error::from)
 }
 
-fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn render_status(app: &mut App, stdout: &mut Stdout) -> Result<()> {
     clear_status(app, stdout)?;
 
     if app.is_visual_mode() {
@@ -217,10 +220,10 @@ fn render_status(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         style::Print(status),
     )?;
 
-    queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row))
+    queue!(stdout, helper::move_to(app.cursor_column + if app.get_current_line().is_virtual { 2 } else { 0 }, app.cursor_row)).map_err(anyhow::Error::from)
 }
 
-fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
+fn render_command(app: &mut App, stdout: &mut Stdout) -> Result<()> {
     clear_status(app, stdout)?;
 
     queue!(
@@ -228,7 +231,7 @@ fn render_command(app: &mut App, stdout: &mut Stdout) -> std::io::Result<()> {
         helper::move_to(0, app.window_height - 1),
         style::SetBackgroundColor(Color::Reset),
         style::Print(format!(":{}", app.command)),
-    )
+    ).map_err(anyhow::Error::from)
 }
 
 fn chunk_line(line: &Line, app: &App) -> Vec<OffsetChunk> {

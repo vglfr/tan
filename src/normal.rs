@@ -63,4 +63,37 @@ impl App {
     pub fn normal_u(&mut self) {
         self.untag();
     }
+
+    pub fn normal_pg_down(&mut self) {
+        common::handle_pg_down(self);
+    }
+
+    pub fn normal_pg_up(&mut self) {
+        common::handle_pg_up(self);
+    }
+
+    #[allow(non_snake_case)]
+    pub fn normal_H(&mut self) {
+        common::handle_H(self);
+    }
+
+    #[allow(non_snake_case)]
+    pub fn normal_M(&mut self) {
+        common::handle_M(self);
+    }
+
+    #[allow(non_snake_case)]
+    pub fn normal_L(&mut self) {
+        common::handle_L(self);
+    }
+
+    #[allow(non_snake_case)]
+    pub fn normal_E(&mut self) {
+        common::handle_E(self);
+    }
+
+    #[allow(non_snake_case)]
+    pub fn normal_S(&mut self) {
+        common::handle_S(self);
+    }
 }

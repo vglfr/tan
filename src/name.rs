@@ -35,4 +35,9 @@ impl App {
             self.change |= 0b_0001_1001;
         }
     }
+
+    pub fn name_esc(&mut self) {
+        self.set_modal_mode();
+        self.change |= 0b_0001_0011;
+    }
 }

@@ -5,6 +5,11 @@ impl App {
         self.set_command_mode();
         self.change |= 0b_0010_0000;
     }
+
+    pub fn common_t(&mut self) {
+        self.tag();
+        self.set_normal_mode();
+    }
 }
 
 #[allow(non_snake_case)]
@@ -236,20 +241,6 @@ pub fn handle_s(app: &mut App) {
 pub fn handle_e(app: &mut App) {
     app.cursor_column = std::cmp::min(app.get_current_line_width().saturating_sub(1), app.window_width.saturating_sub(1));
     app.change |= 0b0100;
-}
-
-pub fn handle_t(app: &mut App) {
-    app.tag();
-    app.set_normal_mode();
-
-    // app.visual_start = app.cursor_column;
-    // app.visual_end = app.visual_start;
-}
-
-pub fn handle_esc(app: &mut App) {
-    app.set_modal_mode();
-    app.change |= 0b_0001_0011;
-    // execute!(stdout, cursor::Hide)?;
 }
 
 fn manage_vertical_drift(app: &mut App) {
