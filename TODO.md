@@ -43,10 +43,9 @@ Tasks:
 + handle resizing
 + error messages
 + finish refactoring
++ fix blinking
 
-- fix blinking
 - overlapping untag
-
 - terminal resize
 - handle c-u c-w in command / name mode
 - render line (visual hl move optimization)

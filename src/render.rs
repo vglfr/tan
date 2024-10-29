@@ -148,8 +148,6 @@ fn render_modal(app: &mut App, stdout: &mut Stdout) -> Result<()> {
 }
 
 fn render_offset(app: &App, stdout: &mut Stdout) -> Result<()> {
-    queue!(stdout, terminal::Clear(ClearType::All))?;
-
     let start = app.offset_row;
     let end = std::cmp::min(app.window_height + app.offset_row - 1, app.nlines);
 
@@ -178,6 +176,8 @@ fn render_offset(app: &App, stdout: &mut Stdout) -> Result<()> {
                 style::Print(text),
             )?;
         }
+
+        queue!(stdout, terminal::Clear(ClearType::UntilNewLine))?;
     }
 
     let cursor_column = if app.get_current_line().is_virtual {
@@ -185,6 +185,7 @@ fn render_offset(app: &App, stdout: &mut Stdout) -> Result<()> {
     } else {
         app.cursor_column
     };
+
     queue!(stdout, helper::move_to(cursor_column, app.cursor_row)).map_err(anyhow::Error::from)
 }
 
@@ -384,6 +385,7 @@ fn chunk_label(label: &Label) -> Vec<ModalChunk> {
         color: Color::Reset,
         is_name: false,
     });
+
     chunks.push(ModalChunk {
         text: if label.is_active {
             "A".to_owned()
@@ -393,6 +395,7 @@ fn chunk_label(label: &Label) -> Vec<ModalChunk> {
         color: Color::Reset,
         is_name: false,
     });
+
     chunks.push(ModalChunk {
         text: if label.is_visible {
             " ".to_owned()
@@ -402,26 +405,31 @@ fn chunk_label(label: &Label) -> Vec<ModalChunk> {
         color: Color::Reset,
         is_name: false,
     });
+
     chunks.push(ModalChunk {
         text: "  ".to_owned(),
         color: Color::Reset,
         is_name: false,
     });
+
     chunks.push(ModalChunk {
         text: "        ".to_owned(),
         color: label.color,
         is_name: false,
     });
+
     chunks.push(ModalChunk {
         text: "    ".to_owned(),
         color: Color::Reset,
         is_name: false,
     });
+
     chunks.push(ModalChunk {
         text: format!("{:width$}", label.name, width = 20),
         color: Color::Reset,
         is_name: true,
     });
+
     chunks.push(ModalChunk {
         text: " │ ".to_owned(),
         color: Color::Reset,

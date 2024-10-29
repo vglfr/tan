@@ -81,6 +81,7 @@ fn load_spacy(filename: &str) -> Result<App> {
 
     let (text, ents, labels) = read_spacy(filename)?;
     let bare_lines = text
+        .trim_end()
         .split("\n")
         .map(|x| x.to_owned())
         .enumerate()
