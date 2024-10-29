@@ -35,12 +35,15 @@ type Pair = (usize, usize);
 
 #[allow(private_interfaces)]
 pub fn load_file(argv: &Argv) -> Result<App> {
-    let format = argv.format.clone()
-        .unwrap_or_else(||
-            if argv.name.ends_with(".tan") { FType::Tan }
-            else if argv.name.ends_with(".json") { FType::Spacy }
-            else { FType::Raw }
-        );
+    let format = argv.format.clone().unwrap_or_else(|| {
+        if argv.name.ends_with(".tan") {
+            FType::Tan
+        } else if argv.name.ends_with(".json") {
+            FType::Spacy
+        } else {
+            FType::Raw
+        }
+    });
 
     match format {
         FType::Raw => load_raw(&argv.name),
@@ -51,16 +54,24 @@ pub fn load_file(argv: &Argv) -> Result<App> {
 
 fn load_raw(filename: &str) -> Result<App> {
     let window = terminal::window_size()?;
-    
+
     let lines = File::open(filename)
         .map(BufReader::new)?
         .lines()
-        .fold_ok(Vec::new(), |mut acc, x| { acc.push(x); acc })?
+        .fold_ok(Vec::new(), |mut acc, x| {
+            acc.push(x);
+            acc
+        })?
         .into_iter()
         .enumerate()
         .fold((Vec::new(), 0, window.columns as usize - 2), virtualize_line)
         .0;
-    let labels = vec![Label { name: "label1".to_owned(), color: Color::Red, is_active: true, is_visible: true }];
+    let labels = vec![Label {
+        name: "label1".to_owned(),
+        color: Color::Red,
+        is_active: true,
+        is_visible: true,
+    }];
 
     Ok(App::new(filename, lines, labels, window))
 }
@@ -69,7 +80,8 @@ fn load_spacy(filename: &str) -> Result<App> {
     let window = terminal::window_size()?;
 
     let (text, ents, labels) = read_spacy(filename)?;
-    let bare_lines = text.split("\n")
+    let bare_lines = text
+        .split("\n")
         .map(|x| x.to_owned())
         .enumerate()
         .fold((Vec::new(), 0, window.columns as usize - 2), virtualize_line)
@@ -127,35 +139,38 @@ fn virtualize_line(acc: Accumulator, item: Enumerate) -> Accumulator {
 
         if virtual_offset == text.len() {
             absolute_offset += 1;
-            break
+            break;
         }
     }
 
     (lines, absolute_offset, window_width)
 }
 
-fn assign_labels(mut lines: Vec<Line>, ents: &Vec<Ent>, labels: &Vec<Label>) -> Vec<Line> {
+fn assign_labels(mut lines: Vec<Line>, ents: &[Ent], labels: &[Label]) -> Vec<Line> {
     for ent in ents {
-        let label = labels.iter()
+        let label = labels
+            .iter()
             .position(|x| x.name == ent.label)
-            .expect(format!("Cannot find label named {}", ent.label).as_ref());
+            .expect(&format!("Cannot find label named {}", ent.label));
 
-        let intervals = lines.iter().enumerate()
-            .filter(|(_,x)| {
+        let intervals = lines
+            .iter()
+            .enumerate()
+            .filter(|(_, x)| {
                 let tag = (ent.start, ent.end);
                 let line = (x.absolute_offset, x.absolute_offset + x.width);
                 has_interval_overlap(tag, line)
             })
-            .map(|(i,x)| {
+            .map(|(i, x)| {
                 let tag = (ent.start, ent.end);
                 let line = (x.absolute_offset, x.width);
 
                 let bounds = calculate_tag_bounds(tag, line);
                 (i, bounds)
             })
-            .collect::<Vec<(usize,Pair)>>();
+            .collect::<Vec<(usize, Pair)>>();
 
-        for (i,(n,(start,end))) in intervals.iter().enumerate() {
+        for (i, (n, (start, end))) in intervals.iter().enumerate() {
             let tag = Tag {
                 start: *start,
                 end: *end,
@@ -187,45 +202,47 @@ fn calculate_tag_bounds(tag: Pair, line: Pair) -> Pair {
     (line_width.saturating_sub(left), line_width - right)
 }
 
-// t      ---
-// l     -----
-//      s2 s1 e1 e2
+/*
+t      ---
+l     -----
+     s2 s1 e1 e2
 
-// t     -----
-// l      ---
-//      s1 s2 e2 e1
+t     -----
+l      ---
+     s1 s2 e2 e1
 
-// t     -----
-// l        ---
-//      s1 s2 e1 e2
+t     -----
+l        ---
+     s1 s2 e1 e2
 
-// t     -----
-// l   ---
-//      s2 s1 e2 e1
+t     -----
+l   ---
+     s2 s1 e2 e1
 
-// t       -----
-// l   ---
-//      s2 e2 s1 e1
+t       -----
+l   ---
+     s2 e2 s1 e1
 
-// t  -----
-// l        ---
-//      s1 e1 s2 e2
+t  -----
+l        ---
+     s1 e1 s2 e2
+*/
 #[test]
 fn test_has_interval_overlap() {
-    assert!(has_interval_overlap((11,13), (10,14)) == true);
-    assert!(has_interval_overlap((10,14), (11,13)) == true);
-    assert!(has_interval_overlap((10,12), (11,14)) == true);
-    assert!(has_interval_overlap((11,13), (10,12)) == true);
-    assert!(has_interval_overlap((13,15), (10,12)) == false);
-    assert!(has_interval_overlap((10,12), (13,15)) == false);
+    assert!(has_interval_overlap((11, 13), (10, 14)) == true);
+    assert!(has_interval_overlap((10, 14), (11, 13)) == true);
+    assert!(has_interval_overlap((10, 12), (11, 14)) == true);
+    assert!(has_interval_overlap((11, 13), (10, 12)) == true);
+    assert!(has_interval_overlap((13, 15), (10, 12)) == false);
+    assert!(has_interval_overlap((10, 12), (13, 15)) == false);
 }
 
 #[test]
 fn test_calculate_tag_bounds() {
-    assert!(calculate_tag_bounds((100,120), (80,80)) == (20,40));
-    assert!(calculate_tag_bounds(( 60,180), (80,80)) == ( 0,80));
-    assert!(calculate_tag_bounds(( 60,120), (80,80)) == ( 0,40));
-    assert!(calculate_tag_bounds((100,180), (80,80)) == (20,80));
+    assert!(calculate_tag_bounds((100, 120), (80, 80)) == (20, 40));
+    assert!(calculate_tag_bounds((60, 180), (80, 80)) == (0, 80));
+    assert!(calculate_tag_bounds((60, 120), (80, 80)) == (0, 40));
+    assert!(calculate_tag_bounds((100, 180), (80, 80)) == (20, 80));
 }
 
 fn parse_labels(ents: &Vec<Ent>) -> Vec<Label> {
@@ -237,7 +254,7 @@ fn parse_labels(ents: &Vec<Ent>) -> Vec<Label> {
             let label = Label {
                 name: ent.label.chars().take(20).collect(),
                 color: *colors.next().expect("Error looping over colors"),
-                is_active: if labels.is_empty() { true } else { false },
+                is_active: labels.is_empty(),
                 is_visible: true,
             };
 
@@ -252,7 +269,9 @@ pub fn save_tan(app: &mut App) -> Result<()> {
     let mode = app.mode.clone();
     app.set_normal_mode();
 
-    if !app.filename.ends_with(".tan") { app.filename.push_str(".tan") };
+    if !app.filename.ends_with(".tan") {
+        app.filename.push_str(".tan")
+    };
     let mut f = File::create(&app.filename)?;
 
     let s = serde_json::to_string(&app)?;
@@ -264,5 +283,6 @@ pub fn save_tan(app: &mut App) -> Result<()> {
 
 pub fn dump_debug(app: &App) -> Result<()> {
     let mut f = File::create("/tmp/dbg.json")?;
-    f.write_all(serde_json::to_string(app)?.as_bytes()).map_err(anyhow::Error::from)
+    f.write_all(serde_json::to_string(app)?.as_bytes())
+        .map_err(anyhow::Error::from)
 }

@@ -75,14 +75,15 @@ impl App {
     }
 
     pub fn get_visual_bounds(&self, row: usize) -> (usize, usize) {
-        self.visual.iter()
+        self.visual
+            .iter()
             .find(|x| x.row == row)
             .map(|x| {
                 let mut tmp = [x.start, x.end];
                 tmp.sort();
                 (tmp[0], tmp[1] + 1)
             })
-            .unwrap_or((0,0))
+            .unwrap_or((0, 0))
     }
 
     pub fn get_current_line(&self) -> &Line {
@@ -94,10 +95,16 @@ impl App {
     }
 
     pub fn tag(&mut self) {
-        let (s,e) = self.get_visual_bounds(self.cursor_row + self.offset_row);
+        let (s, e) = self.get_visual_bounds(self.cursor_row + self.offset_row);
 
         if e - s > 1 {
-            let tag =  Tag { start: s, end: e, label: self.modal_active, has_line_next: false, has_line_prev: false };
+            let tag = Tag {
+                start: s,
+                end: e,
+                label: self.modal_active,
+                has_line_next: false,
+                has_line_prev: false,
+            };
             self.lines[self.cursor_row + self.offset_row].tags.push(tag);
             self.change = 0b0011;
         }
@@ -106,7 +113,10 @@ impl App {
     }
 
     pub fn untag(&mut self) {
-        let position_maybe = self.get_current_line().tags.iter()
+        let position_maybe = self
+            .get_current_line()
+            .tags
+            .iter()
             .position(|x| x.start <= self.cursor_column && self.cursor_column < x.end);
 
         if let Some(position) = position_maybe {
@@ -129,7 +139,10 @@ impl App {
 
     fn untag_prev(&mut self, tag: &Tag, row: usize) {
         if tag.has_line_prev {
-            let tag_prev = self.lines[row - 1].tags.pop().expect("Error dereferencing previous tag");
+            let tag_prev = self.lines[row - 1]
+                .tags
+                .pop()
+                .expect("Error dereferencing previous tag");
             self.untag_prev(&tag_prev, row - 1);
         }
     }

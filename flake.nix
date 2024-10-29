@@ -11,9 +11,12 @@
         in pkgs.mkShell {
           packages = with pkgs ; [
             pkgs.cargo
+            pkgs.clippy
             pkgs.libiconvReal
+            pkgs.pre-commit
             pkgs.rust-analyzer
             pkgs.rustc
+            pkgs.rustfmt
           ];
         };
     };

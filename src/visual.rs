@@ -1,4 +1,7 @@
-use crate::{app::{App, Mode, Visual}, common};
+use crate::{
+    app::{App, Mode, Visual},
+    common,
+};
 
 impl App {
     pub fn is_visual_mode(&self) -> bool {
@@ -10,7 +13,8 @@ impl App {
     }
 
     fn set_visual_end(&mut self) {
-        self.visual.iter_mut()
+        self.visual
+            .iter_mut()
             .find(|x| x.row == self.cursor_row + self.offset_row)
             .map(|x| x.end = self.cursor_column);
     }
@@ -36,11 +40,16 @@ impl App {
         common::handle_j(self);
 
         if self.change != 0 {
-            self.visual.iter_mut()
+            self.visual
+                .iter_mut()
                 .find(|x| x.row == self.cursor_row + self.offset_row - 1)
                 .map(|x| x.end = self.lines[self.cursor_row + self.offset_row - 1].width - 1);
 
-            if let Some(region) = self.visual.iter_mut().find(|x| x.row == self.cursor_row + self.offset_row) {
+            if let Some(region) = self
+                .visual
+                .iter_mut()
+                .find(|x| x.row == self.cursor_row + self.offset_row)
+            {
                 region.end = self.cursor_column;
                 self.visual.remove(0);
             } else {
@@ -60,11 +69,16 @@ impl App {
         common::handle_k(self);
 
         if self.change != 0 {
-            self.visual.iter_mut()
+            self.visual
+                .iter_mut()
                 .find(|x| x.row == self.cursor_row + self.offset_row + 1)
                 .map(|x| x.end = 0);
 
-            if let Some(region) = self.visual.iter_mut().find(|x| x.row == self.cursor_row + self.offset_row) {
+            if let Some(region) = self
+                .visual
+                .iter_mut()
+                .find(|x| x.row == self.cursor_row + self.offset_row)
+            {
                 region.end = self.cursor_column;
                 self.visual.pop();
             } else {

@@ -1,4 +1,7 @@
-use crate::{app::{App, Mode, Visual}, common};
+use crate::{
+    app::{App, Mode, Visual},
+    common,
+};
 
 impl App {
     pub fn is_normal_mode(&self) -> bool {

@@ -65,11 +65,13 @@ impl App {
             };
 
             self.labels.insert(self.modal_row + 1, label);
-            self.lines.iter_mut().for_each(
-                |x| x.tags.iter_mut().for_each(
-                    |y| if y.label > self.modal_row { y.label += 1 }
-                )
-            );
+            self.lines.iter_mut().for_each(|x| {
+                x.tags.iter_mut().for_each(|y| {
+                    if y.label > self.modal_row {
+                        y.label += 1
+                    }
+                })
+            });
 
             self.rng = (self.rng + 1) % app::COLORS.len();
             self.change |= 0b_0001_0011;
@@ -78,12 +80,22 @@ impl App {
 
     pub fn modal_d(&mut self) {
         if self.labels.len() > 1 {
-            self.lines.iter_mut().for_each(|x|
-                x.tags = x.tags.clone().into_iter()
+            self.lines.iter_mut().for_each(|x| {
+                x.tags = x
+                    .tags
+                    .clone()
+                    .into_iter()
                     .filter(|y| y.label != self.modal_row)
-                    .map(|mut y| if y.label > self.modal_row { y.label -= 1; y } else { y })
+                    .map(|mut y| {
+                        if y.label > self.modal_row {
+                            y.label -= 1;
+                            y
+                        } else {
+                            y
+                        }
+                    })
                     .collect()
-            );
+            });
 
             self.labels.remove(self.modal_row);
             self.modal_row = self.modal_row.saturating_sub(1).rem_euclid(self.labels.len());
@@ -111,7 +123,8 @@ impl App {
     }
 
     fn get_label_color(&self) -> usize {
-        app::COLORS.iter()
+        app::COLORS
+            .iter()
             .position(|x| x == &self.labels[self.modal_row].color)
             .expect("Error retrieving label color")
     }

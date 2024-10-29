@@ -101,6 +101,6 @@ with open("data/test.json", "wb") as f:
 #### Commands
 
 | command | description |
-| -- | -- |      
+| -- | -- |
 | `q`, `quit` | quit |
 | `w`, `write` | write file at tan format |

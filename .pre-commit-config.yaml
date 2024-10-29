@@ -1,0 +1,23 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+  - id: end-of-file-fixer
+  - id: trailing-whitespace
+- repo: local
+  hooks:
+  - id: check
+    name: check
+    language: system
+    pass_filenames: false
+    entry: cargo check
+  - id: clippy
+    name: clippy
+    language: system
+    pass_filenames: false
+    entry: cargo clippy -- --deny warnings
+  - id: rustfmt
+    name: rustfmt
+    language: system
+    files: "src/.*\\.rs"
+    entry: rustfmt --check

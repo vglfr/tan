@@ -85,7 +85,10 @@ pub fn handle_S(app: &mut App) {
 }
 
 pub fn handle_pg_down(app: &mut App) {
-    let offset_row = std::cmp::min(app.offset_row + app.cursor_row, app.nlines.saturating_sub(app.window_height).saturating_sub(1));
+    let offset_row = std::cmp::min(
+        app.offset_row + app.cursor_row,
+        app.nlines.saturating_sub(app.window_height).saturating_sub(1),
+    );
     let cursor_row = std::cmp::min(app.window_height.saturating_sub(2), app.nlines.saturating_sub(1));
 
     if app.offset_row != offset_row {
@@ -102,7 +105,9 @@ pub fn handle_pg_down(app: &mut App) {
 }
 
 pub fn handle_pg_up(app: &mut App) {
-    let offset_row = app.offset_row.saturating_sub(app.window_height.saturating_sub(app.cursor_row).saturating_sub(2));
+    let offset_row = app
+        .offset_row
+        .saturating_sub(app.window_height.saturating_sub(app.cursor_row).saturating_sub(2));
     let cursor_row = 0;
 
     if app.offset_row != offset_row {
@@ -172,7 +177,9 @@ pub fn handle_k(app: &mut App) {
 }
 
 pub fn handle_l(app: &mut App) {
-    if app.cursor_column < app.get_current_line_width().saturating_sub(1) && app.cursor_column < app.window_width.saturating_sub(1) {
+    if app.cursor_column < app.get_current_line_width().saturating_sub(1)
+        && app.cursor_column < app.window_width.saturating_sub(1)
+    {
         app.cursor_column += 1;
         app.change |= 0b0101;
     } else if app.cursor_row < app.window_height.saturating_sub(2) {
@@ -187,11 +194,16 @@ pub fn handle_l(app: &mut App) {
 }
 
 pub fn handle_w(app: &mut App) {
-    let mut line_iter = app.get_current_line().text.chars().skip(app.cursor_column + 1).peekable();
+    let mut line_iter = app
+        .get_current_line()
+        .text
+        .chars()
+        .skip(app.cursor_column + 1)
+        .peekable();
 
     if let Some(next) = line_iter.peek() {
         let offset = if next.is_whitespace() {
-            line_iter.take_while(|x|  x.is_whitespace()).collect::<Vec<_>>().len() + 1
+            line_iter.take_while(|x| x.is_whitespace()).collect::<Vec<_>>().len() + 1
         } else {
             line_iter.take_while(|x| !x.is_whitespace()).collect::<Vec<_>>().len()
         };
@@ -215,7 +227,7 @@ pub fn handle_b(app: &mut App) {
 
     if let Some(next) = line_iter.peek() {
         let offset = if next.is_whitespace() {
-            line_iter.take_while(|x|  x.is_whitespace()).collect::<Vec<_>>().len() + 1
+            line_iter.take_while(|x| x.is_whitespace()).collect::<Vec<_>>().len() + 1
         } else {
             line_iter.take_while(|x| !x.is_whitespace()).collect::<Vec<_>>().len()
         };
@@ -239,7 +251,10 @@ pub fn handle_s(app: &mut App) {
 }
 
 pub fn handle_e(app: &mut App) {
-    app.cursor_column = std::cmp::min(app.get_current_line_width().saturating_sub(1), app.window_width.saturating_sub(1));
+    app.cursor_column = std::cmp::min(
+        app.get_current_line_width().saturating_sub(1),
+        app.window_width.saturating_sub(1),
+    );
     app.change |= 0b0100;
 }
 
@@ -262,7 +277,10 @@ fn manage_virtual_shift(app: &mut App, is_new: bool, is_old: bool) {
 }
 
 fn move_to_line_end(app: &mut App) {
-    let cursor_column = std::cmp::min(app.get_current_line_width().saturating_sub(1), app.window_width.saturating_sub(1));
+    let cursor_column = std::cmp::min(
+        app.get_current_line_width().saturating_sub(1),
+        app.window_width.saturating_sub(1),
+    );
 
     if app.cursor_column != cursor_column {
         app.cursor_column = cursor_column;

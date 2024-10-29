@@ -2,7 +2,10 @@ use std::io::Stdout;
 
 use anyhow::Result;
 
-use crate::{app::{App, Mode}, io, render};
+use crate::{
+    app::{App, Mode},
+    io, render,
+};
 
 impl App {
     pub fn is_command_mode(&self) -> bool {
