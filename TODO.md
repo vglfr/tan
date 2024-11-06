@@ -45,6 +45,13 @@ Tasks:
 + finish refactoring
 + fix blinking
 
+- Nix flake
+- Cargo package
+- ascii video
+- github tags
+- lists to add
+- forums to publish
+
 - overlapping untag
 - terminal resize
 - handle c-u c-w in command / name mode

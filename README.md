@@ -24,17 +24,21 @@ Options:
 
 #### Formats
 
-For now only SpaCy format is parsed.
+For now only plain and Spacy formats are supported.
+Spacy NER annotations could be exported like this:
 
 ```python
 import json
 import spacy
 
 nlp = spacy.load("en_core_web_sm")
-doc = nlp("data/test.txt")
 
-with open("data/test.json", "wb") as f:
-    f.write(doc.to_json())
+
+with open("data/test.txt") as f:
+    doc = nlp(f.read())
+
+with open("data/test.json", "w") as f:
+    json.dump(doc.to_json(), f)
 ```
 
 #### Modes
