@@ -46,8 +46,8 @@ Tasks:
 + fix blinking
 + ascii video
 + github tags
++ Nix flake
 
-- Nix flake
 - Cargo package
 - lists to add
 - forums to publish

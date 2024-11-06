@@ -12,8 +12,8 @@ Simple vim-like tool for NER annotation.
 
 #### Installation
 
-- `nix shell github:vglfr/tan#default` with Nix
-- `cargo install tan-annotation-tool` with crates.io
+- `nix shell github:vglfr/tan` with Nix
+- `cargo install tantan` with crates.io
 
 #### Usage
 

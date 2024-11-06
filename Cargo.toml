@@ -1,7 +1,11 @@
 [package]
-name = "tan"
+name = "tantan"
 version = "0.1.0"
+description = "Simple vim-like tool for NER annotation"
+repository = "https://github.com/vglfr/tan"
+license = "MIT"
 edition = "2021"
+readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.91"
