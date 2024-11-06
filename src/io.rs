@@ -41,12 +41,12 @@ pub fn load_file(argv: &Argv) -> Result<App> {
         } else if argv.name.ends_with(".json") {
             FType::Spacy
         } else {
-            FType::Raw
+            FType::Plain
         }
     });
 
     match format {
-        FType::Raw => load_raw(&argv.name),
+        FType::Plain => load_raw(&argv.name),
         FType::Spacy => load_spacy(&argv.name),
         FType::Tan => load_tan(&argv.name),
     }

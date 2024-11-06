@@ -7,12 +7,15 @@
   outputs = { nixpkgs, flake-utils, ... }:
     let mkShell = system:
       let pkgs = nixpkgs.legacyPackages.${system};
-          # rust = makeRustPlatform {
-          #   cargo = rust-bin.selectLatestNightlyWith (toolchain: toolchain.default);
-          #   rustc = rust-bin.selectLatestNightlyWith (toolchain: toolchain.default);
-          # };
       in {
-        defaultPackage = pkgs.callPackage ./tan.nix { };
+        defaultPackage =
+          pkgs.rustPlatform.buildRustPackage rec {
+            pname = "tan";
+            version = "0.1.0";
+            cargoLock.lockFile = ./Cargo.lock;
+            src = pkgs.lib.cleanSource ./.;
+          };
+
         devShells.default =
           pkgs.mkShell {
             packages = [
@@ -24,8 +27,6 @@
               pkgs.rustc
               pkgs.rustfmt
             ];
-
-            shellHook = "export PATH=/home/vglfr/.cargo/bin:$PATH";
           };
       };
     in flake-utils.lib.eachDefaultSystem mkShell;

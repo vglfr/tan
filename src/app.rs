@@ -150,7 +150,7 @@ impl App {
 
 #[derive(Clone, Debug, PartialEq, ValueEnum)]
 pub enum FType {
-    Raw,
+    Plain,
     Spacy,
     Tan,
 }
