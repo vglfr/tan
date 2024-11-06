@@ -2,7 +2,7 @@
 
 Simple vim-like tool for NER annotation.
 
-![demo](https://drive.google.com/file/d/1XFzLmEMq1ymivEF2qN8QGNBpFeGIGjTn/view?usp=sharing)
+![demo](https://drive.google.com/uc?export=view&id=1XFzLmEMq1ymivEF2qN8QGNBpFeGIGjTn)
 
 #### Features
 
