@@ -5,28 +5,28 @@
   };
 
   outputs = { nixpkgs, flake-utils, ... }:
-    let mkShell = system: {
-      devShells.default =
-        let pkgs = nixpkgs.legacyPackages.${system};
-            libs = [ pkgs.libz pkgs.stdenv.cc.cc.lib ];
+    let mkShell = system:
+      let pkgs = nixpkgs.legacyPackages.${system};
+          # rust = makeRustPlatform {
+          #   cargo = rust-bin.selectLatestNightlyWith (toolchain: toolchain.default);
+          #   rustc = rust-bin.selectLatestNightlyWith (toolchain: toolchain.default);
+          # };
+      in {
+        defaultPackage = pkgs.callPackage ./tan.nix { };
+        devShells.default =
+          pkgs.mkShell {
+            packages = [
+              pkgs.cargo
+              pkgs.clippy
+              pkgs.libiconvReal
+              pkgs.pre-commit
+              pkgs.rust-analyzer
+              pkgs.rustc
+              pkgs.rustfmt
+            ];
 
-        in pkgs.mkShell {
-          packages = [
-            pkgs.cargo
-            pkgs.clippy
-            pkgs.libiconvReal
-            pkgs.pre-commit
-            pkgs.python312
-            pkgs.rust-analyzer
-            pkgs.rustc
-            pkgs.rustfmt
-          ];
-
-          shellHook = ''
-            export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath libs}:$LD_LIBRARY_PATH"
-            source .venv/bin/activate
-          '';
-        };
-    };
+            shellHook = "export PATH=/home/vglfr/.cargo/bin:$PATH";
+          };
+      };
     in flake-utils.lib.eachDefaultSystem mkShell;
 }

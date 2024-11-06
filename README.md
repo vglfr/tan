@@ -7,12 +7,12 @@ Simple vim-like tool for NER annotation.
 #### Features
 
 - quickly visualize NER annotations from Spacy
-- add new annotations using vim-like interface
-- modify and delete existing annotations
+- start labeling instantly (no Docker hassle like in Doccano or Label Studio)
+- vim-like keybindings and interface
 
 #### Installation
 
-- `nix shell vglfr/tan#default` with Nix
+- `nix shell github:vglfr/tan#default` with Nix
 - `cargo install tan-annotation-tool` with crates.io
 
 #### Usage

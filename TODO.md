@@ -44,11 +44,11 @@ Tasks:
 + error messages
 + finish refactoring
 + fix blinking
++ ascii video
++ github tags
 
 - Nix flake
 - Cargo package
-- ascii video
-- github tags
 - lists to add
 - forums to publish
 
