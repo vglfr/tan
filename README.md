@@ -2,12 +2,13 @@
 
 Simple vim-like tool for NER annotation.
 
-15-second usage gif
+[https://drive.google.com/file/d/1XFzLmEMq1ymivEF2qN8QGNBpFeGIGjTn/view?usp=sharing]
 
-Not just an annotation tool. General annotation tool.
-Something which takes input text, keeps it unchanged,
-and allows any number of overlays over it. Overlays
-could be added, removed, extended, merged, and visualized.
+#### Features
+
+- quickly visualize NER annotations from Spacy
+- add new annotations using vim-like interface
+- modify and delete existing annotations
 
 #### Installation
 
@@ -20,7 +21,7 @@ could be added, removed, extended, merged, and visualized.
 
 Options:
 
-- `-f FORMAT`, `--format FORMAT` [default: raw] [possible values: raw, spacy, tan]
+- `-f FORMAT`, `--format FORMAT` [default: plain] [possible values: plain, spacy, tan]
 
 #### Formats
 

@@ -11,7 +11,7 @@ impl App {
 
     pub fn modal_m(&mut self) {
         self.set_normal_mode();
-        self.change |= 0b_0000_0011;
+        self.change |= 0b_0000_1011;
     }
 
     pub fn modal_h(&mut self) {

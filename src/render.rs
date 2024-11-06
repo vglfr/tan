@@ -110,15 +110,20 @@ fn render_cursor(app: &App, stdout: &mut Stdout) -> Result<()> {
         queue!(
             stdout,
             helper::move_to(app.modal_column, app.modal_start_row + app.modal_row + 1)
-        )
-        .map_err(anyhow::Error::from)
+        )?;
     } else {
         let cursor_column = if app.get_current_line().is_virtual {
             app.cursor_column + 2
         } else {
             app.cursor_column
         };
-        queue!(stdout, helper::move_to(cursor_column, app.cursor_row)).map_err(anyhow::Error::from)
+        queue!(stdout, helper::move_to(cursor_column, app.cursor_row))?;
+    }
+
+    if app.is_modal_mode() {
+        queue!(stdout, cursor::Hide).map_err(anyhow::Error::from)
+    } else {
+        queue!(stdout, cursor::Show).map_err(anyhow::Error::from)
     }
 }
 
@@ -151,11 +156,14 @@ fn render_offset(app: &App, stdout: &mut Stdout) -> Result<()> {
     let start = app.offset_row;
     let end = std::cmp::min(app.window_height + app.offset_row - 1, app.nlines);
 
+    // queue!(stdout, cursor::Show)?;
+
     for line in &app.lines[start..end] {
+        queue!(stdout, helper::move_to(0, line.virtual_row - app.offset_row))?;
+
         if line.is_virtual {
             queue!(
                 stdout,
-                helper::move_to(0, line.virtual_row - app.offset_row),
                 style::SetBackgroundColor(Color::Reset),
                 style::SetForegroundColor(Color::DarkGrey),
                 style::Print("⤷ "),
