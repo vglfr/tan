@@ -1,6 +1,6 @@
 [package]
 name = "tantan"
-version = "0.1.0"
+version = "0.1.1"
 description = "Simple vim-like tool for NER annotation"
 repository = "https://github.com/vglfr/tan"
 license = "MIT"
@@ -15,3 +15,7 @@ itertools = "0.13.0"
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
 tap = "1.0.1"
+
+[[bin]]
+name = "tan"
+path = "src/main.rs"
